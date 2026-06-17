@@ -1,0 +1,1171 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { 
+  Character, 
+  Relationship, 
+  Career, 
+  InventoryItem, 
+  GameEvent, 
+  WorldEvent, 
+  Gender, 
+  StatName, 
+  Choice, 
+  EventOutcome, 
+  DynastyHistoryEntry,
+  Expansion
+} from '../types/game';
+import { getExpansion } from '../data/expansions/registry';
+import { saveSystem } from '../systems/SaveSystem';
+import type { SlotMeta } from '../systems/SaveSystem';
+import { gameAudio } from '../systems/SoundSystem';
+
+interface GameContextType {
+  activeExpansion: Expansion;
+  character: Character | null;
+  lineage: DynastyHistoryEntry[];
+  worldEvent: WorldEvent | null;
+  currentEvent: GameEvent | null;
+  currentEventOutcome: EventOutcome | null;
+  isPlaying: boolean;
+  saveSlots: Record<string, SlotMeta>;
+  activeSlotId: string;
+  soundEnabled: boolean;
+  
+  // Actions
+  selectExpansion: (id: string) => void;
+  startNewLife: (name: string, dynastyName: string, gender: Gender) => void;
+  ageOneYear: () => void;
+  chooseChoice: (choice: Choice) => void;
+  clearOutcome: () => void;
+  interactWithRelation: (relationId: string, action: 'chat' | 'gift' | 'insult' | 'propose' | 'ask_gold') => void;
+  applyForJob: (career: Career) => boolean;
+  workHard: () => void;
+  resignJob: () => void;
+  buyItem: (item: Omit<InventoryItem, 'id'>) => boolean;
+  performActivity: (activityId: string) => void;
+  selectHeirAndContinue: (childId: string) => void;
+  toggleSound: () => void;
+  saveGame: () => void;
+  loadGame: (slotId: string) => void;
+  deleteSlot: (slotId: string) => void;
+  quitToMenu: () => void;
+}
+
+const GameContext = createContext<GameContextType | undefined>(undefined);
+
+export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [activeExpansion, setActiveExpansion] = useState<Expansion>(getExpansion('fantasy'));
+  const [character, setCharacter] = useState<Character | null>(null);
+  const [lineage, setLineage] = useState<DynastyHistoryEntry[]>([]);
+  const [worldEvent, setWorldEvent] = useState<WorldEvent | null>(null);
+  const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null);
+  const [currentEventOutcome, setCurrentEventOutcome] = useState<EventOutcome | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [saveSlots, setSaveSlots] = useState<Record<string, SlotMeta>>({});
+  const [activeSlotId, setActiveSlotId] = useState<string>('slot_1');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+
+  // Load active slots and config on mount
+  useEffect(() => {
+    setSaveSlots(saveSystem.getSlots());
+    const savedSlot = saveSystem.getActiveSlotId();
+    setActiveSlotId(savedSlot);
+  }, []);
+
+  const selectExpansion = (id: string) => {
+    const exp = getExpansion(id);
+    setActiveExpansion(exp);
+    gameAudio.playClick();
+  };
+
+  const toggleSound = () => {
+    const newState = !soundEnabled;
+    setSoundEnabled(newState);
+    gameAudio.setEnabled(newState);
+    gameAudio.playClick();
+  };
+
+  const generateRandomName = (gender: Gender, exp: Expansion): { first: string; last: string } => {
+    const firstList = gender === 'male' 
+      ? exp.names.male 
+      : gender === 'female' 
+        ? exp.names.female 
+        : [...exp.names.male, ...exp.names.female];
+    const lastList = exp.names.last;
+
+    const first = firstList[Math.floor(Math.random() * firstList.length)];
+    const last = lastList[Math.floor(Math.random() * lastList.length)];
+    return { first, last };
+  };
+
+  const rollStats = (): Record<StatName, number> => {
+    const roll = () => Math.floor(Math.random() * 45) + 35; // 35 to 80
+    return {
+      health: roll(),
+      happiness: roll(),
+      intelligence: roll(),
+      charisma: roll(),
+      strength: roll(),
+      reputation: 50 // starts balanced at 50 (middle of Honor <-> Infamy scale)
+    };
+  };
+
+  const startNewLife = (customName: string, customDynastyName: string, gender: Gender) => {
+    // 1. Select dynamic starting background based on weight
+    const totalWeight = activeExpansion.startingBackgrounds.reduce((sum, b) => sum + b.weight, 0);
+    let roll = Math.random() * totalWeight;
+    let selectedBg = activeExpansion.startingBackgrounds[0];
+    
+    for (const bg of activeExpansion.startingBackgrounds) {
+      roll -= bg.weight;
+      if (roll <= 0) {
+        selectedBg = bg;
+        break;
+      }
+    }
+
+    // 2. Roll base attributes (35 to 55) and apply background modifiers
+    const baseRoll = () => Math.floor(Math.random() * 20) + 35;
+    const stats: Record<StatName, number> = {
+      health: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.health || 0))),
+      happiness: 50,
+      intelligence: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.intelligence || 0))),
+      charisma: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.charisma || 0))),
+      strength: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.strength || 0))),
+      reputation: Math.max(5, Math.min(100, 50 + (selectedBg.statModifiers.reputation || 0)))
+    };
+
+    // 3. Setup title and gold from background
+    const startingTitle = gender === 'male' 
+      ? selectedBg.titleMale 
+      : gender === 'female' 
+        ? selectedBg.titleFemale 
+        : selectedBg.titleNonBinary;
+        
+    const startingGold = selectedBg.gold;
+
+    const generated = generateRandomName(gender, activeExpansion);
+    const name = customName.trim() || generated.first;
+    const dynastyName = customDynastyName.trim() || generated.last;
+    
+    // Generate initial parents
+    const parentLast = dynastyName;
+    const motherFirst = activeExpansion.names.female[Math.floor(Math.random() * activeExpansion.names.female.length)];
+    const fatherFirst = activeExpansion.names.male[Math.floor(Math.random() * activeExpansion.names.male.length)];
+
+    const initialRelationships: Relationship[] = [
+      {
+        id: 'mother',
+        name: `${motherFirst} ${parentLast}`,
+        type: 'parent',
+        relationship: Math.floor(Math.random() * 30) + 60, // 60 to 90
+        status: 'alive',
+        age: Math.floor(Math.random() * 15) + 20 // 20 to 35
+      },
+      {
+        id: 'father',
+        name: `${fatherFirst} ${parentLast}`,
+        type: 'parent',
+        relationship: Math.floor(Math.random() * 30) + 60,
+        status: 'alive',
+        age: Math.floor(Math.random() * 15) + 22 // 22 to 37
+      }
+    ];
+
+    const journalText = `Born a ${gender} child. ${selectedBg.journalText} Parents: Mother ${initialRelationships[0].name}, Father ${initialRelationships[1].name}.`;
+
+    const newChar: Character = {
+      name,
+      dynastyName,
+      gender,
+      age: 0,
+      stats,
+      gold: startingGold,
+      title: startingTitle,
+      relationships: initialRelationships,
+      inventory: [],
+      journal: [journalText],
+      isDead: false
+    };
+
+    setCharacter(newChar);
+    setLineage([]);
+    setWorldEvent(null);
+    setCurrentEvent(null);
+    setCurrentEventOutcome(null);
+    setIsPlaying(true);
+    
+    gameAudio.playLevelUp();
+
+    // Auto-save initial state
+    const currentSave = {
+      character: newChar,
+      activeExpansionId: activeExpansion.id,
+      worldEvent: null,
+      lineage: []
+    };
+    saveSystem.saveGame(activeSlotId, currentSave);
+    setSaveSlots(saveSystem.getSlots());
+  };
+
+  const applyForJob = (career: Career): boolean => {
+    if (!character || character.isDead) return false;
+    
+    // Check age requirement
+    if (career.requirements.minAge && character.age < career.requirements.minAge) {
+      return false;
+    }
+
+    // Check stats requirement
+    if (career.requirements.minStats) {
+      for (const [stat, val] of Object.entries(career.requirements.minStats)) {
+        if (character.stats[stat as StatName] < (val || 0)) {
+          return false;
+        }
+      }
+    }
+
+    // Check pre-requisite career
+    if (career.requirements.requiredCareerId && character.career?.id !== career.requirements.requiredCareerId) {
+      return false;
+    }
+
+    setCharacter(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        career: {
+          id: career.id,
+          title: career.title,
+          salary: career.salary,
+          performance: 50
+        },
+        journal: [...prev.journal, `Began working as a ${career.title} (Salary: ${career.salary} Gold/yr).`]
+      };
+    });
+    
+    gameAudio.playMoney();
+    return true;
+  };
+
+  const workHard = () => {
+    if (!character || !character.career) return;
+    
+    setCharacter(prev => {
+      if (!prev || !prev.career) return null;
+      const newPerf = Math.min(100, prev.career.performance + 15);
+      const newHappiness = Math.max(0, prev.stats.happiness - 4);
+      const newHealth = Math.max(0, prev.stats.health - 2);
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          happiness: newHappiness,
+          health: newHealth
+        },
+        career: {
+          ...prev.career,
+          performance: newPerf
+        },
+        journal: [...prev.journal, `Worked hard at your job as a ${prev.career.title}. Performance increased.`]
+      };
+    });
+    gameAudio.playClick();
+  };
+
+  const resignJob = () => {
+    if (!character || !character.career) return;
+    
+    setCharacter(prev => {
+      if (!prev || !prev.career) return null;
+      return {
+        ...prev,
+        career: undefined,
+        journal: [...prev.journal, `Resigned from your career as a ${prev.career.title}.`]
+      };
+    });
+    gameAudio.playClick();
+  };
+
+  const buyItem = (itemTemplate: Omit<InventoryItem, 'id'>): boolean => {
+    if (!character || character.isDead) return false;
+    if (character.gold < itemTemplate.cost) {
+      gameAudio.playFail();
+      return false;
+    }
+
+    const newItem: InventoryItem = {
+      ...itemTemplate,
+      id: `item_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    };
+
+    setCharacter(prev => {
+      if (!prev) return null;
+      
+      // Charisma / Might boost templates based on name
+      const statsBoost: Partial<Record<StatName, number>> = {};
+      if (newItem.name.includes('Sword') || newItem.name.includes('Pistol')) {
+        statsBoost.strength = Math.min(100, prev.stats.strength + 10);
+      }
+      if (newItem.name.includes('Wand') || newItem.name.includes('Sextant')) {
+        statsBoost.intelligence = Math.min(100, prev.stats.intelligence + 10);
+      }
+      if (newItem.name.includes('Horse') || newItem.name.includes('Castle') || newItem.name.includes('Galleon')) {
+        statsBoost.charisma = Math.min(100, prev.stats.charisma + 12);
+        statsBoost.happiness = Math.min(100, prev.stats.happiness + 8);
+      }
+
+      return {
+        ...prev,
+        gold: prev.gold - newItem.cost,
+        inventory: [...prev.inventory, newItem],
+        stats: {
+          ...prev.stats,
+          ...statsBoost
+        },
+        journal: [...prev.journal, `Purchased ${newItem.name} for ${newItem.cost} Gold.`]
+      };
+    });
+
+    gameAudio.playMoney();
+    return true;
+  };
+
+  const performActivity = (activityId: string) => {
+    if (!character || character.isDead) return;
+    const activity = activeExpansion.activities.find(a => a.id === activityId);
+    if (!activity) return;
+
+    if (character.gold < activity.cost) {
+      gameAudio.playFail();
+      return;
+    }
+
+    setCharacter(prev => {
+      if (!prev) return null;
+
+      let goldCost = activity.cost;
+      let newStats = { ...prev.stats };
+      let logs = [...prev.journal];
+      let relationships = [...prev.relationships];
+      let currentGold = prev.gold - goldCost;
+
+      if (activity.id === 'study_arcane' || activity.id === 'study_charts') {
+        newStats.intelligence = Math.min(100, newStats.intelligence + 10);
+        newStats.happiness = Math.max(0, newStats.happiness - 2);
+        logs.push(`Studied local books and ancient charts. Knowledge increased.`);
+        gameAudio.playClick();
+      } 
+      else if (activity.id === 'swordplay' || activity.id === 'climb_rigging') {
+        newStats.strength = Math.min(100, newStats.strength + 8);
+        newStats.health = Math.min(100, newStats.health + 4);
+        newStats.happiness = Math.min(100, newStats.happiness + 2);
+        logs.push(`Trained your body vigorously. Might and physical build increased.`);
+        gameAudio.playClick();
+      } 
+      else if (activity.id === 'dice_game' || activity.id === 'liars_dice') {
+        const win = Math.random() > 0.52; // Slightly house favored
+        if (win) {
+          currentGold += goldCost * 2;
+          newStats.happiness = Math.min(100, newStats.happiness + 15);
+          logs.push(`Won a tense dice game in the local tavern. Earned ${goldCost} Gold!`);
+          gameAudio.playMoney();
+        } else {
+          newStats.happiness = Math.max(0, newStats.happiness - 15);
+          logs.push(`Lost ${goldCost} Gold playing dice in the tavern.`);
+          gameAudio.playFail();
+        }
+      } 
+      else if (activity.id === 'pickpocket' || activity.id === 'smuggle_rum') {
+        const successChance = 0.45 + (prev.stats.intelligence + prev.stats.charisma) / 300; // Cap around 80%
+        const roll = Math.random();
+        
+        if (roll < successChance) {
+          const loot = activity.id === 'pickpocket' 
+            ? Math.floor(Math.random() * 20) + 5 
+            : Math.floor(Math.random() * 80) + 40;
+          currentGold += loot;
+          newStats.reputation = Math.max(0, newStats.reputation - 12); // gain infamy
+          newStats.happiness = Math.min(100, newStats.happiness + 10);
+          logs.push(`Successful crime! Stole ${loot} Gold from patrols and merchants.`);
+          gameAudio.playMoney();
+        } else {
+          // Arrested!
+          newStats.reputation = Math.max(0, newStats.reputation - 25);
+          newStats.happiness = Math.max(0, newStats.happiness - 35);
+          newStats.health = Math.max(0, newStats.health - 15);
+          currentGold = Math.max(0, currentGold - 50); // Fine
+          
+          logs.push(`Caught by authorities committing crimes! Fined 50 Gold and spent months in dungeon.`);
+          gameAudio.playFail();
+          
+          // Fire from job
+          return {
+            ...prev,
+            gold: currentGold,
+            stats: newStats,
+            career: undefined,
+            journal: logs
+          };
+        }
+      } 
+      else if (activity.id === 'goblin_raid' || activity.id === 'raid_merchant') {
+        const successChance = 0.35 + (prev.stats.strength + prev.stats.intelligence) / 300;
+        const roll = Math.random();
+        
+        if (roll < successChance) {
+          const loot = activity.id === 'goblin_raid'
+            ? Math.floor(Math.random() * 250) + 100
+            : Math.floor(Math.random() * 400) + 150;
+          currentGold += loot;
+          newStats.reputation = Math.max(0, newStats.reputation - 15); // infamy
+          newStats.happiness = Math.min(100, newStats.happiness + 20);
+          logs.push(`Massive raid success! Captured valuable loot cache worth ${loot} Gold.`);
+          gameAudio.playMoney();
+        } else {
+          // Heavy failure
+          newStats.health = Math.max(0, newStats.health - 45); // heavy damage
+          newStats.happiness = Math.max(0, newStats.happiness - 30);
+          logs.push(`The raid went horribly wrong. You were beaten severely, barely escaping with your life.`);
+          gameAudio.playFail();
+          
+          if (newStats.health <= 0) {
+            return {
+              ...prev,
+              gold: currentGold,
+              stats: newStats,
+              isDead: true,
+              deathReason: activity.id === 'goblin_raid' ? 'Slain by goblins during a cave raid.' : 'Blown up by ship cannons during a merchant raid.',
+              journal: [...logs, `Died at age ${prev.age}: ${activity.id === 'goblin_raid' ? 'Slain by goblins' : 'Blown up during cargo raid'}.`]
+            };
+          }
+        }
+      } 
+      else if (activity.id === 'seek_love' || activity.id === 'tavern_carouse') {
+        newStats.charisma = Math.min(100, newStats.charisma + 10);
+        newStats.happiness = Math.min(100, newStats.happiness + 15);
+        
+        // Find partner chance
+        const hasSpouse = relationships.some(r => r.type === 'spouse' && r.status === 'alive');
+        if (!hasSpouse && Math.random() > 0.45) {
+          const isFemale = Math.random() > 0.5;
+          const nameList = isFemale ? activeExpansion.names.female : activeExpansion.names.male;
+          const pFirst = nameList[Math.floor(Math.random() * nameList.length)];
+          const pLast = activeExpansion.names.last[Math.floor(Math.random() * activeExpansion.names.last.length)];
+          
+          const newSpouse: Relationship = {
+            id: `spouse_${Date.now()}`,
+            name: `${pFirst} ${pLast}`,
+            type: 'spouse',
+            relationship: 80,
+            status: 'alive',
+            age: prev.age + Math.floor(Math.random() * 5) - 2
+          };
+          relationships.push(newSpouse);
+          logs.push(`Met and married ${newSpouse.name} at the gathering!`);
+          gameAudio.playLevelUp();
+        } else {
+          logs.push(`Had a pleasant, lively night socializing and laughing with the crowd.`);
+          gameAudio.playClick();
+        }
+      }
+
+      return {
+        ...prev,
+        gold: currentGold,
+        stats: newStats,
+        relationships,
+        journal: logs
+      };
+    });
+  };
+
+  const interactWithRelation = (relationId: string, action: 'chat' | 'gift' | 'insult' | 'propose' | 'ask_gold') => {
+    if (!character || character.isDead) return;
+
+    setCharacter(prev => {
+      if (!prev) return null;
+      let logs = [...prev.journal];
+      let gold = prev.gold;
+      let currentStats = { ...prev.stats };
+      
+      const newRelations = prev.relationships.map(r => {
+        if (r.id !== relationId) return r;
+
+        let level = r.relationship;
+        if (action === 'chat') {
+          level = Math.min(100, level + Math.floor(Math.random() * 10) + 6);
+          logs.push(`Conversated with your ${r.type} ${r.name}. Relationship improved.`);
+          gameAudio.playClick();
+        } 
+        else if (action === 'gift') {
+          if (gold >= 25) {
+            gold -= 25;
+            level = Math.min(100, level + Math.floor(Math.random() * 15) + 15);
+            logs.push(`Presented a thoughtful gift to your ${r.type} ${r.name}. They loved it.`);
+            gameAudio.playMoney();
+          } else {
+            gameAudio.playFail();
+          }
+        } 
+        else if (action === 'insult') {
+          level = Math.max(0, level - Math.floor(Math.random() * 15) - 10);
+          currentStats.happiness = Math.max(0, currentStats.happiness - 5);
+          logs.push(`Argued with and insulted your ${r.type} ${r.name}. Atmosphere grew cold.`);
+          gameAudio.playFail();
+        } 
+        else if (action === 'propose') {
+          if (r.type === 'friend' && level >= 75) {
+            r.type = 'spouse';
+            level = Math.min(100, level + 15);
+            logs.push(`Proposed marriage to your companion ${r.name}. They accepted!`);
+            gameAudio.playLevelUp();
+          } else {
+            level = Math.max(0, level - 15);
+            logs.push(`Proposed to ${r.name}, but they laughed and rejected you.`);
+            gameAudio.playFail();
+          }
+        } 
+        else if (action === 'ask_gold') {
+          if (r.type === 'parent' && level >= 55) {
+            const allowance = Math.floor(Math.random() * 30) + 10;
+            gold += allowance;
+            level = Math.max(0, level - 5);
+            logs.push(`Asked your parent ${r.name} for financial assistance. They gifted you ${allowance} Gold.`);
+            gameAudio.playMoney();
+          } else {
+            level = Math.max(0, level - 8);
+            logs.push(`Asked ${r.name} for gold, but they refused to help.`);
+            gameAudio.playFail();
+          }
+        }
+
+        return { ...r, relationship: level };
+      });
+
+      return {
+        ...prev,
+        gold,
+        stats: currentStats,
+        relationships: newRelations,
+        journal: logs
+      };
+    });
+  };
+
+  const ageOneYear = () => {
+    if (!character || character.isDead) return;
+
+    const currentAge = character.age + 1;
+    let newGold = character.gold;
+    let newStats = { ...character.stats };
+    let logs: string[] = [];
+    let activeRelations = [...character.relationships];
+    let activeJob = character.career ? { ...character.career } : undefined;
+    let isDead = false;
+    let deathReason = '';
+
+    // 1. Career calculations
+    if (activeJob) {
+      let currentSalary = activeJob.salary;
+      // World Event Modifiers
+      if (worldEvent?.modifiers?.incomeMultiplier) {
+        currentSalary = Math.round(currentSalary * worldEvent.modifiers.incomeMultiplier);
+      }
+      
+      newGold += currentSalary;
+      
+      // Career performance decay/boost
+      const randomShift = Math.floor(Math.random() * 11) - 5; // -5 to +5
+      activeJob.performance = Math.max(0, Math.min(100, activeJob.performance + randomShift));
+      
+      logs.push(`Earned ${currentSalary} Gold from your work as a ${activeJob.title}.`);
+
+      // Fire warning
+      if (activeJob.performance < 15) {
+        activeJob = undefined;
+        newStats.happiness = Math.max(0, newStats.happiness - 25);
+        logs.push(`Fired from your job due to terrible yearly performance!`);
+        gameAudio.playFail();
+      }
+    }
+
+    // 2. Inventory assets income and upkeep
+    let netAssetFlow = 0;
+    character.inventory.forEach(item => {
+      netAssetFlow += item.income;
+    });
+    newGold += netAssetFlow;
+    if (netAssetFlow > 0) {
+      logs.push(`Investments yielded a net profit of ${netAssetFlow} Gold.`);
+    } else if (netAssetFlow < 0) {
+      logs.push(`Paid ${Math.abs(netAssetFlow)} Gold in maintenance and taxes for assets.`);
+    }
+
+    // Ensure gold doesn't go below 0 (accrue debt)
+    if (newGold < 0) {
+      newStats.happiness = Math.max(0, newStats.happiness - 10);
+      logs.push(`Warning: You have entered debt! Your balance is ${newGold} Gold.`);
+    }
+
+    // 3. Relationships age up and survival check
+    activeRelations = activeRelations.map(r => {
+      if (r.status === 'dead') return r;
+      const newAge = r.age + 1;
+      
+      // Death chance based on age
+      let deathChance = 0.002;
+      if (newAge > 60) deathChance = 0.03;
+      if (newAge > 75) deathChance = 0.12;
+      if (newAge > 90) deathChance = 0.35;
+
+      if (Math.random() < deathChance) {
+        logs.push(`Your ${r.type} ${r.name} has passed away at the age of ${newAge}.`);
+        newStats.happiness = Math.max(0, newStats.happiness - 20);
+        return { ...r, status: 'dead', age: newAge };
+      }
+
+      // Random drift in relationship quality
+      const relShift = Math.floor(Math.random() * 7) - 3; // -3 to +3
+      return { 
+        ...r, 
+        age: newAge, 
+        relationship: Math.max(0, Math.min(100, r.relationship + relShift)) 
+      };
+    });
+
+    // 4. Have children opportunity
+    const isMarried = activeRelations.some(r => r.type === 'spouse' && r.status === 'alive');
+    if (isMarried && currentAge >= 18 && currentAge <= 45 && Math.random() < 0.22) {
+      const isBoy = Math.random() > 0.5;
+      const cFirst = isBoy 
+        ? activeExpansion.names.male[Math.floor(Math.random() * activeExpansion.names.male.length)]
+        : activeExpansion.names.female[Math.floor(Math.random() * activeExpansion.names.female.length)];
+      
+      const newChild: Relationship = {
+        id: `child_${Date.now()}`,
+        name: `${cFirst} ${character.dynastyName}`,
+        type: 'child',
+        relationship: Math.floor(Math.random() * 20) + 75, // starts high
+        status: 'alive',
+        age: 0
+      };
+      activeRelations.push(newChild);
+      logs.push(`Your spouse gave birth to a healthy ${isBoy ? 'boy' : 'girl'} named ${newChild.name}!`);
+      gameAudio.playLevelUp();
+    }
+
+    // 5. World Event ticking
+    let activeWorldEvent = worldEvent;
+    if (activeWorldEvent) {
+      const remaining = activeWorldEvent.duration - 1;
+      if (remaining <= 0) {
+        logs.push(`The global event '${activeWorldEvent.name}' has finally ended.`);
+        activeWorldEvent = null;
+      } else {
+        activeWorldEvent = { ...activeWorldEvent, duration: remaining };
+        
+        // Apply world event passive drains
+        if (activeWorldEvent.modifiers?.healthDrain) {
+          newStats.health = Math.max(0, newStats.health - activeWorldEvent.modifiers.healthDrain);
+          logs.push(`Drained by the effects of the active '${activeWorldEvent.name}' (-${activeWorldEvent.modifiers.healthDrain} health).`);
+        }
+      }
+    } else {
+      // Chance to trigger a new world event
+      if (Math.random() < 0.08 && activeExpansion.worldEvents.length > 0) {
+        const evTemplate = activeExpansion.worldEvents[Math.floor(Math.random() * activeExpansion.worldEvents.length)];
+        activeWorldEvent = {
+          ...evTemplate,
+          duration: Math.floor(Math.random() * 5) + 3 // 3-7 years
+        };
+        logs.push(`GLOBAL WARPING: '${activeWorldEvent.name}' has begun! ${activeWorldEvent.description}`);
+        gameAudio.playFail();
+      }
+    }
+
+    // 6. Natural Stat Decay / Aging effects
+    if (currentAge < 15) {
+      newStats.strength = Math.min(100, newStats.strength + 3);
+      newStats.intelligence = Math.min(100, newStats.intelligence + 2);
+    } else if (currentAge > 50) {
+      newStats.strength = Math.max(0, newStats.strength - 2);
+      newStats.health = Math.max(0, newStats.health - 1);
+    }
+    if (currentAge > 70) {
+      newStats.strength = Math.max(0, newStats.strength - 4);
+      newStats.health = Math.max(0, newStats.health - 3);
+    }
+
+    // 7. Death Checks
+    if (newStats.health <= 0) {
+      isDead = true;
+      deathReason = 'Fell victim to critical illness and body failure.';
+    } else {
+      let naturalDeathChance = 0.001;
+      if (currentAge > 70) naturalDeathChance = 0.05;
+      if (currentAge > 85) naturalDeathChance = 0.20;
+      if (currentAge > 100) naturalDeathChance = 0.55;
+
+      if (Math.random() < naturalDeathChance) {
+        isDead = true;
+        deathReason = 'Passed away peacefully of old age.';
+      }
+    }
+
+    if (isDead) {
+      logs.push(`Died of natural causes at age ${currentAge}.`);
+      gameAudio.playDeath();
+      
+      const deadChar: Character = {
+        ...character,
+        age: currentAge,
+        stats: { ...newStats, health: 0 },
+        gold: newGold,
+        career: activeJob,
+        relationships: activeRelations,
+        journal: [...character.journal, ...logs, `Died: ${deathReason}`],
+        isDead: true,
+        deathReason
+      };
+      
+      setCharacter(deadChar);
+      
+      // Auto-save the death
+      saveSystem.saveGame(activeSlotId, {
+        character: deadChar,
+        activeExpansionId: activeExpansion.id,
+        worldEvent: activeWorldEvent,
+        lineage
+      });
+      setSaveSlots(saveSystem.getSlots());
+      return;
+    }
+
+    // 8. Event selection engine (Random events)
+    // 85% chance of an event triggering at age 5+
+    let triggeredEvent: GameEvent | null = null;
+    if (currentAge >= 5 && Math.random() < 0.85 && activeExpansion.events.length > 0) {
+      // Filter valid events
+      const validEvents = activeExpansion.events.filter(e => {
+        if (e.requirements) {
+          const r = e.requirements;
+          if (r.minAge && currentAge < r.minAge) return false;
+          if (r.maxAge && currentAge > r.maxAge) return false;
+          if (r.careerId && activeJob?.id !== r.careerId) return false;
+          if (r.activeWorldEventId && activeWorldEvent?.id !== r.activeWorldEventId) return false;
+          
+          if (r.hasSpouse) {
+            const hasSpouse = activeRelations.some(rel => rel.type === 'spouse' && rel.status === 'alive');
+            if (!hasSpouse) return false;
+          }
+          if (r.hasChildren) {
+            const hasChildren = activeRelations.some(rel => rel.type === 'child' && rel.status === 'alive');
+            if (!hasChildren) return false;
+          }
+          if (r.minStats) {
+            for (const [stat, val] of Object.entries(r.minStats)) {
+              if (newStats[stat as StatName] < (val || 0)) return false;
+            }
+          }
+        }
+        return true;
+      });
+
+      if (validEvents.length > 0) {
+        // Weighted roll
+        let totalWeight = 0;
+        validEvents.forEach(e => {
+          totalWeight += e.weight;
+        });
+
+        let roll = Math.random() * totalWeight;
+        for (const ev of validEvents) {
+          roll -= ev.weight;
+          if (roll <= 0) {
+            triggeredEvent = ev;
+            break;
+          }
+        }
+      }
+    }
+
+    // Update state
+    const nextChar: Character = {
+      ...character,
+      age: currentAge,
+      stats: newStats,
+      gold: newGold,
+      career: activeJob,
+      relationships: activeRelations,
+      journal: [...character.journal, ...logs, `Aged up to ${currentAge} years old.`].slice(-100), // cap journal log at last 100 entries
+      isDead: false
+    };
+
+    setCharacter(nextChar);
+    setWorldEvent(activeWorldEvent);
+    
+    if (triggeredEvent) {
+      setCurrentEvent(triggeredEvent);
+    } else {
+      gameAudio.playClick();
+    }
+
+    // Auto-save the state
+    saveSystem.saveGame(activeSlotId, {
+      character: nextChar,
+      activeExpansionId: activeExpansion.id,
+      worldEvent: activeWorldEvent,
+      lineage
+    });
+    setSaveSlots(saveSystem.getSlots());
+  };
+
+  const chooseChoice = (choice: Choice) => {
+    if (!character) return;
+
+    // Apply Morality Reputation Shifts
+    let reputationShift = choice.moralityShift || 0;
+    
+    // Choose outcome based on chances
+    const outcomes = choice.outcomes;
+    const roll = Math.random() * 100;
+    let accum = 0;
+    let selectedOutcome = outcomes[outcomes.length - 1].outcome; // default to last
+
+    for (const item of outcomes) {
+      accum += item.chance;
+      if (roll <= accum) {
+        selectedOutcome = item.outcome;
+        break;
+      }
+    }
+
+    // Apply outcome effects to character
+    setCharacter(prev => {
+      if (!prev) return null;
+
+      let gold = prev.gold + (selectedOutcome.goldChange || 0);
+      let stats = { ...prev.stats };
+      let logs = [...prev.journal];
+      let relationships = [...prev.relationships];
+      let career = prev.career ? { ...prev.career } : undefined;
+      let title = prev.title;
+      let isDead = prev.isDead;
+      let deathReason = prev.deathReason;
+
+      // Apply stat changes
+      if (selectedOutcome.statChanges) {
+        for (const [stat, delta] of Object.entries(selectedOutcome.statChanges)) {
+          const sName = stat as StatName;
+          stats[sName] = Math.max(0, Math.min(100, stats[sName] + (delta || 0)));
+        }
+      }
+
+      // Add reputation shift
+      stats.reputation = Math.max(0, Math.min(100, stats.reputation + reputationShift));
+
+      // Title Change
+      if (selectedOutcome.titleChange) {
+        title = selectedOutcome.titleChange;
+      }
+
+      // Add item reward
+      let inventory = [...prev.inventory];
+      if (selectedOutcome.itemReward) {
+        const item: InventoryItem = {
+          ...selectedOutcome.itemReward,
+          id: `item_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+        };
+        inventory.push(item);
+      }
+
+      // Remove item
+      if (selectedOutcome.removeItemName) {
+        const index = inventory.findIndex(item => item.name === selectedOutcome.removeItemName);
+        if (index > -1) {
+          inventory.splice(index, 1);
+        }
+      }
+
+      // Relationship changes
+      if (selectedOutcome.relationshipChange) {
+        const rc = selectedOutcome.relationshipChange;
+        if (rc.type === 'spouse' || rc.type === 'child' || rc.type === 'friend') {
+          const generatedName = generateRandomName('non-binary', activeExpansion);
+          const name = rc.name || `${generatedName.first} ${prev.dynastyName}`;
+          
+          const newRelation: Relationship = {
+            id: `relation_${Date.now()}`,
+            name,
+            type: rc.type,
+            relationship: rc.amount || 75,
+            status: 'alive',
+            age: rc.type === 'child' ? 0 : prev.age + Math.floor(Math.random() * 5) - 2
+          };
+          relationships.push(newRelation);
+        } 
+        else if (rc.type === 'modify') {
+          relationships = relationships.map(r => {
+            if (r.id === rc.relationId || r.type === 'spouse') { // modify matching or default spouse
+              return { ...r, relationship: Math.max(0, Math.min(100, r.relationship + (rc.amount || 0))) };
+            }
+            return r;
+          });
+        }
+      }
+
+      // Career changes
+      if (selectedOutcome.careerChange) {
+        const cc = selectedOutcome.careerChange;
+        if (cc.type === 'fire') {
+          career = undefined;
+        } 
+        else if (cc.type === 'hire' && cc.careerId) {
+          const jobTemplate = activeExpansion.careers.find(c => c.id === cc.careerId);
+          if (jobTemplate) {
+            career = {
+              id: jobTemplate.id,
+              title: jobTemplate.title,
+              salary: jobTemplate.salary,
+              performance: 50
+            };
+          }
+        } 
+        else if (cc.type === 'promote') {
+          if (career) {
+            career.performance = Math.min(100, career.performance + 30);
+            career.salary = Math.round(career.salary * 1.3);
+            career.title = cc.careerTitle || `Senior ${career.title}`;
+          }
+        }
+      }
+
+      // Death outcome
+      if (selectedOutcome.death) {
+        isDead = true;
+        deathReason = selectedOutcome.deathReason || 'Died in tragic circumstances.';
+        stats.health = 0;
+      }
+
+      logs.push(selectedOutcome.logText);
+
+      return {
+        ...prev,
+        gold,
+        stats,
+        title,
+        career,
+        relationships,
+        inventory,
+        isDead,
+        deathReason,
+        journal: logs
+      };
+    });
+
+    if (selectedOutcome.death) {
+      gameAudio.playDeath();
+    } else if (selectedOutcome.goldChange && selectedOutcome.goldChange > 0) {
+      gameAudio.playMoney();
+    } else {
+      gameAudio.playClick();
+    }
+
+    setCurrentEventOutcome(selectedOutcome);
+  };
+
+  const clearOutcome = () => {
+    setCurrentEvent(null);
+    setCurrentEventOutcome(null);
+    
+    // Auto-save on closing popup
+    if (character) {
+      saveSystem.saveGame(activeSlotId, {
+        character,
+        activeExpansionId: activeExpansion.id,
+        worldEvent,
+        lineage
+      });
+      setSaveSlots(saveSystem.getSlots());
+    }
+  };
+
+  const selectHeirAndContinue = (childId: string) => {
+    if (!character) return;
+
+    const child = character.relationships.find(r => r.id === childId);
+    if (!child) return;
+
+    // 1. Create a generation history entry
+    const historyEntry: DynastyHistoryEntry = {
+      generation: lineage.length + 1,
+      name: character.name,
+      dynastyName: character.dynastyName,
+      age: character.age,
+      gold: character.gold,
+      titleReached: character.title,
+      summary: character.deathReason || 'Passed away.'
+    };
+
+    const nextLineage = [...lineage, historyEntry];
+
+    // 2. Transfer inheritance assets (80% of gold due to estate tax)
+    const inheritedGold = Math.max(0, Math.round(character.gold * 0.8));
+    
+    // Transfer assets (properties and businesses)
+    const inheritedInventory = character.inventory.filter(
+      item => item.type === 'property' || item.type === 'business' || item.name.includes('Runic') || item.name.includes('Dueling')
+    );
+
+    // 3. Setup new character stats (Inherit child stats)
+    const startingStats = rollStats(); // Fallback but let's give child traits
+    
+    // Setup sibling/parent relations for the new character
+    // The previous siblings and mother/father of the child
+    const parentLast = character.dynastyName;
+    const motherFirst = activeExpansion.names.female[Math.floor(Math.random() * activeExpansion.names.female.length)];
+    const fatherFirst = activeExpansion.names.male[Math.floor(Math.random() * activeExpansion.names.male.length)];
+
+    const newRelationships: Relationship[] = [
+      {
+        id: 'mother',
+        name: `${motherFirst} ${parentLast}`,
+        type: 'parent',
+        relationship: 75,
+        status: 'alive',
+        age: child.age + 22
+      },
+      {
+        id: 'father',
+        name: `${fatherFirst} ${parentLast}`,
+        type: 'parent',
+        relationship: 75,
+        status: 'alive',
+        age: child.age + 24
+      }
+    ];
+
+    const nextChar: Character = {
+      name: child.name.split(' ')[0], // Keep child name
+      dynastyName: character.dynastyName,
+      gender: Math.random() > 0.5 ? 'male' : 'female', // or inherit
+      age: child.age,
+      stats: startingStats,
+      gold: inheritedGold,
+      title: character.title.includes('Noble') ? 'Gentry' : activeExpansion.startingTitles[0], // lose some status, keep some
+      relationships: newRelationships,
+      inventory: inheritedInventory,
+      journal: [
+        `Inherited the family legacy of generation ${historyEntry.generation} after the death of ${character.name}.`,
+        `Inherited ${inheritedGold} Gold and ${inheritedInventory.length} estate properties.`
+      ],
+      isDead: false
+    };
+
+    setCharacter(nextChar);
+    setLineage(nextLineage);
+    setWorldEvent(null);
+    setCurrentEvent(null);
+    setCurrentEventOutcome(null);
+    
+    gameAudio.playLevelUp();
+
+    // Save
+    saveSystem.saveGame(activeSlotId, {
+      character: nextChar,
+      activeExpansionId: activeExpansion.id,
+      worldEvent: null,
+      lineage: nextLineage
+    });
+    setSaveSlots(saveSystem.getSlots());
+  };
+
+  const saveCurrentSlot = () => {
+    if (!character) return;
+    saveSystem.saveGame(activeSlotId, {
+      character,
+      activeExpansionId: activeExpansion.id,
+      worldEvent,
+      lineage
+    });
+    setSaveSlots(saveSystem.getSlots());
+    gameAudio.playMoney();
+  };
+
+  const loadGame = (slotId: string) => {
+    const data = saveSystem.loadGame(slotId);
+    if (data) {
+      setCharacter(data.character);
+      setActiveExpansion(getExpansion(data.activeExpansionId));
+      setWorldEvent(data.worldEvent);
+      setLineage(data.lineage);
+      setActiveSlotId(slotId);
+      saveSystem.setActiveSlotId(slotId);
+      setIsPlaying(true);
+      setCurrentEvent(null);
+      setCurrentEventOutcome(null);
+      gameAudio.playLevelUp();
+    } else {
+      gameAudio.playFail();
+    }
+  };
+
+  const deleteSlot = (slotId: string) => {
+    saveSystem.deleteSlot(slotId);
+    setSaveSlots(saveSystem.getSlots());
+    gameAudio.playClick();
+  };
+
+  const quitToMenu = () => {
+    setIsPlaying(false);
+    setCharacter(null);
+    setLineage([]);
+    setWorldEvent(null);
+    setCurrentEvent(null);
+    setCurrentEventOutcome(null);
+    gameAudio.playClick();
+  };
+
+  return (
+    <GameContext.Provider value={{
+      activeExpansion,
+      character,
+      lineage,
+      worldEvent,
+      currentEvent,
+      currentEventOutcome,
+      isPlaying,
+      saveSlots,
+      activeSlotId,
+      soundEnabled,
+      selectExpansion,
+      startNewLife,
+      ageOneYear,
+      chooseChoice,
+      clearOutcome,
+      interactWithRelation,
+      applyForJob,
+      workHard,
+      resignJob,
+      buyItem,
+      performActivity,
+      selectHeirAndContinue,
+      toggleSound,
+      saveGame: saveCurrentSlot,
+      loadGame,
+      deleteSlot,
+      quitToMenu
+    }}>
+      {children}
+    </GameContext.Provider>
+  );
+};
+
+export const useGame = () => {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error('useGame must be used within a GameProvider');
+  }
+  return context;
+};

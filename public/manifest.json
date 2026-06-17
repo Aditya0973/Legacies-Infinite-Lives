@@ -1,0 +1,17 @@
+{
+  "short_name": "Legacies",
+  "name": "Legacies: Infinite Lives",
+  "description": "Multi-generational life simulation game across infinite worlds.",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#d97706",
+  "display": "standalone",
+  "orientation": "portrait"
+}
