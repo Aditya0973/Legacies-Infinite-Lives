@@ -33,9 +33,9 @@ export interface InventoryItem {
 }
 
 export interface EventOutcome {
-  text: string;
-  statChanges?: Partial<Record<StatName, number>>;
-  goldChange?: number;
+  text: string | Record<string, string>;
+  statChanges?: Partial<Record<StatName, number | Record<string, number>>>;
+  goldChange?: number | Record<string, number>;
   itemReward?: Omit<InventoryItem, 'id'>;
   removeItemName?: string;
   relationshipChange?: {

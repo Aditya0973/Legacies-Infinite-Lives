@@ -3,11 +3,23 @@ import { useGame } from '../context/GameContext';
 import type { Choice, StatName } from '../types/game';
 import { Sparkles, Coins, Skull, ArrowRight } from 'lucide-react';
 
-const resolveText = (textObj: string | Record<string, string>, careerId?: string): string => {
+const resolveText = (
+  textObj: string | Record<string, string>, 
+  careerId?: string, 
+  expansionId?: string
+): string => {
   if (typeof textObj === 'string') return textObj;
   if (!textObj) return '';
   if (careerId && textObj[careerId]) return textObj[careerId];
+  if (expansionId && textObj[expansionId]) return textObj[expansionId];
   return textObj.default || textObj[Object.keys(textObj)[0]] || '';
+};
+
+const resolveNumber = (val: any, careerId?: string): number => {
+  if (typeof val === 'number') return val;
+  if (!val) return 0;
+  if (careerId && val[careerId] !== undefined) return val[careerId];
+  return val.default || 0;
 };
 
 export const EventModal: React.FC = () => {
@@ -94,12 +106,12 @@ export const EventModal: React.FC = () => {
             {/* Main Narrative text */}
             {!currentEventOutcome ? (
               <p className="text-xl text-text-main leading-relaxed font-light mb-8 italic">
-                "{resolveText(currentEvent.text, character.career?.id)}"
+                "{resolveText(currentEvent.text, character.career?.id, activeExpansion.id)}"
               </p>
             ) : (
               <div className="mb-8">
                 <p className="text-xl text-text-main leading-relaxed font-light mb-6">
-                  {resolveText(currentEventOutcome.text, character.career?.id)}
+                  {resolveText(currentEventOutcome.text, character.career?.id, activeExpansion.id)}
                 </p>
 
                 {/* Outcome Stats Box */}
@@ -110,26 +122,32 @@ export const EventModal: React.FC = () => {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-text-sub">Outcome Details</h4>
                   
                   {/* Gold Change */}
-                  {currentEventOutcome.goldChange !== undefined && (
-                    <div className="flex items-center gap-2 text-md">
-                      <Coins size={16} className={currentEventOutcome.goldChange >= 0 ? 'text-primary' : 'text-rose-500'} />
-                      <span className={currentEventOutcome.goldChange >= 0 ? 'text-primary font-bold' : 'text-rose-500 font-bold'}>
-                        {currentEventOutcome.goldChange >= 0 ? '+' : ''}{currentEventOutcome.goldChange} Gold
-                      </span>
-                    </div>
-                  )}
+                  {(() => {
+                    const gChange = resolveNumber(currentEventOutcome.goldChange, character.career?.id);
+                    if (gChange === 0) return null;
+                    const isPositive = gChange >= 0;
+                    return (
+                      <div className="flex items-center gap-2 text-md">
+                        <Coins size={16} className={isPositive ? 'text-primary' : 'text-rose-500'} />
+                        <span className={isPositive ? 'text-primary font-bold' : 'text-rose-500 font-bold'}>
+                          {isPositive ? '+' : ''}{gChange} Gold
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Stat changes */}
                   {currentEventOutcome.statChanges && Object.entries(currentEventOutcome.statChanges).map(([stat, val]) => {
-                    if (!val) return null;
-                    const isPositive = val > 0;
+                    const delta = resolveNumber(val, character.career?.id);
+                    if (!delta) return null;
+                    const isPositive = delta > 0;
                     return (
                       <div key={stat} className="flex items-center gap-2 text-md text-text-main">
                         <Sparkles size={16} className={isPositive ? 'text-primary' : 'text-rose-400'} />
                         <span>
                           {activeExpansion.statLabels[stat as StatName] || stat}:{' '}
                           <strong className={isPositive ? 'text-primary' : 'text-rose-500'}>
-                            {isPositive ? '+' : ''}{val}%
+                            {isPositive ? '+' : ''}{delta}%
                           </strong>
                         </span>
                       </div>
@@ -195,7 +213,7 @@ export const EventModal: React.FC = () => {
                     }`}
                     style={{ borderRadius: activeExpansion.theme.borderRadius }}
                   >
-                    <span>{resolveText(choice.text, character.career?.id)}</span>
+                    <span>{resolveText(choice.text, character.career?.id, activeExpansion.id)}</span>
                     {!available && (
                       <span className="text-xs text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded border border-rose-500/20 uppercase tracking-wider font-sans font-bold">
                         {getRequirementsText(choice)}

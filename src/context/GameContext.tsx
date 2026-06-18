@@ -50,11 +50,23 @@ interface GameContextType {
   quitToMenu: () => void;
 }
 
-const resolveText = (textObj: string | Record<string, string>, careerId?: string): string => {
+const resolveText = (
+  textObj: string | Record<string, string>, 
+  careerId?: string, 
+  expansionId?: string
+): string => {
   if (typeof textObj === 'string') return textObj;
   if (!textObj) return '';
   if (careerId && textObj[careerId]) return textObj[careerId];
+  if (expansionId && textObj[expansionId]) return textObj[expansionId];
   return textObj.default || textObj[Object.keys(textObj)[0]] || '';
+};
+
+const resolveNumber = (val: any, careerId?: string): number => {
+  if (typeof val === 'number') return val;
+  if (!val) return 0;
+  if (careerId && val[careerId] !== undefined) return val[careerId];
+  return val.default || 0;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -852,7 +864,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCharacter(prev => {
       if (!prev) return null;
 
-      let gold = prev.gold + (selectedOutcome.goldChange || 0);
+      const gChange = resolveNumber(selectedOutcome.goldChange, prev.career?.id);
+      let gold = prev.gold + gChange;
       let stats = { ...prev.stats };
       let logs = [...prev.journal];
       let relationships = [...prev.relationships];
@@ -863,9 +876,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Apply stat changes
       if (selectedOutcome.statChanges) {
-        for (const [stat, delta] of Object.entries(selectedOutcome.statChanges)) {
+        for (const [stat, val] of Object.entries(selectedOutcome.statChanges)) {
           const sName = stat as StatName;
-          stats[sName] = Math.max(0, Math.min(100, stats[sName] + (delta || 0)));
+          const delta = resolveNumber(val, prev.career?.id);
+          stats[sName] = Math.max(0, Math.min(100, stats[sName] + delta));
         }
       }
 
@@ -955,7 +969,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stats.health = 0;
       }
 
-      logs.push(resolveText(selectedOutcome.logText, prev.career?.id));
+      logs.push(resolveText(selectedOutcome.logText, prev.career?.id, activeExpansion.id));
 
       return {
         ...prev,
@@ -971,9 +985,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     });
 
+    const finalGoldChange = resolveNumber(selectedOutcome.goldChange, character?.career?.id);
     if (selectedOutcome.death) {
       gameAudio.playDeath();
-    } else if (selectedOutcome.goldChange && selectedOutcome.goldChange > 0) {
+    } else if (finalGoldChange > 0) {
       gameAudio.playMoney();
     } else {
       gameAudio.playClick();

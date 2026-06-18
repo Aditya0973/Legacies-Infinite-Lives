@@ -640,6 +640,316 @@ export const fantasyExpansion: Expansion = {
           ]
         }
       ]
+    },
+    {
+      id: "opportunity_generous_patron",
+      title: "A Generous Patron",
+      text: {
+        default: "A wealthy stranger has taken interest in your potential.",
+        farmer: "A wealthy landowner admires your hard work in the fields.",
+        blacksmith: "A nobleman is impressed by your craftsmanship.",
+        guard: "A local magistrate notices your dedication.",
+        knight: "A lord has heard tales of your valor.",
+        mage: "An archmage sees promise in your studies.",
+        royal_advisor: "A noble house seeks your guidance."
+      },
+      weight: 12,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Accept their support",
+          moralityShift: 3,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "The investment pays off.",
+                logText: {
+                  default: "Accepted support from a wealthy patron.",
+                  farmer: "Received support from a wealthy landowner.",
+                  blacksmith: "Received sponsorship for your forge.",
+                  guard: "Received backing from a magistrate.",
+                  knight: "Received support from a noble patron.",
+                  mage: "Received support from an archmage.",
+                  royal_advisor: "Received support from an influential noble family."
+                },
+                goldChange: 100,
+                statChanges: {
+                  reputation: 5,
+                  happiness: 5
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "Their promises turn out to be empty.",
+                logText: "Trusted a patron who failed to deliver.",
+                statChanges: {
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Refuse politely",
+          moralityShift: 1,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You choose independence over assistance.",
+                logText: "Declined assistance from a wealthy patron.",
+                statChanges: {
+                  reputation: 2
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "disaster_unexpected_fire",
+      title: "Unexpected Fire",
+      text: {
+        default: "A sudden fire breaks out nearby.",
+        farmer: "Part of your crops catch fire.",
+        blacksmith: "Sparks ignite part of your workshop.",
+        guard: "A fire erupts in a crowded district.",
+        knight: "A stable catches fire during the night.",
+        mage: "A magical experiment causes a blaze.",
+        royal_advisor: "A fire breaks out in a government building."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Attempt to contain it",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You successfully limit the damage.",
+                logText: "Helped contain a dangerous fire.",
+                statChanges: {
+                  reputation: 6
+                }
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "You suffer injuries while helping.",
+                logText: "Was injured while fighting a fire.",
+                statChanges: {
+                  health: -15,
+                  reputation: 3
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Protect yourself first",
+          moralityShift: -3,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You avoid harm but others suffer losses.",
+                logText: "Prioritized personal safety during a fire.",
+                statChanges: {
+                  happiness: -3
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "opportunity_hidden_cache",
+      title: "Hidden Cache",
+      text: {
+        default: "You discover a hidden stash concealed from public view.",
+        farmer: "You uncover a buried chest while plowing.",
+        blacksmith: "A loose stone reveals a hidden compartment in your forge.",
+        guard: "You discover contraband hidden in a warehouse.",
+        knight: "You find a forgotten cache near an old battlefield.",
+        mage: "You discover magical relics hidden beneath a ruined tower.",
+        royal_advisor: "You uncover secret records hidden in the archives."
+      },
+      weight: 8,
+      choices: [
+        {
+          text: "Claim it for yourself",
+          moralityShift: -8,
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "You profit greatly from your discovery.",
+                logText: "Kept a hidden cache for personal gain.",
+                goldChange: 150,
+                statChanges: {
+                  happiness: 8
+                }
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "The true owner discovers your actions.",
+                logText: "Was exposed for taking a hidden cache.",
+                goldChange: -100,
+                statChanges: {
+                  reputation: -10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Report it",
+          moralityShift: 10,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your honesty earns widespread respect.",
+                logText: "Reported a hidden cache to the authorities.",
+                statChanges: {
+                  reputation: 10
+                },
+                goldChange: 50
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "relationship_new_acquaintance",
+      title: "A New Acquaintance",
+      text: {
+        default: "You meet someone interesting during your travels.",
+        farmer: "A traveler stops by your farm.",
+        blacksmith: "A customer lingers to talk after placing an order.",
+        guard: "A citizen thanks you for your service.",
+        knight: "A noble guest takes interest in you.",
+        mage: "A scholar wishes to exchange knowledge.",
+        royal_advisor: "A diplomat seeks your company."
+      },
+      weight: 15,
+      choices: [
+        {
+          text: "Spend time together",
+          moralityShift: 2,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "You develop a meaningful friendship.",
+                logText: "Formed a promising new friendship.",
+                statChanges: {
+                  happiness: 10,
+                  charisma: 3
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "You realize you have little in common.",
+                logText: "Failed to build a connection with a new acquaintance.",
+                statChanges: {
+                  happiness: -2
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Remain distant",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You continue your life unchanged.",
+                logText: "Chose not to pursue a new friendship."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "crime_suspicious_offer",
+      title: "A Suspicious Offer",
+      text: {
+        default: "Someone approaches you with a questionable opportunity.",
+        farmer: "A trader offers stolen goods at a bargain price.",
+        blacksmith: "A stranger asks you to forge illegal weapons.",
+        guard: "A criminal offers a bribe.",
+        knight: "A noble offers payment for dishonorable work.",
+        mage: "A cultist offers forbidden knowledge.",
+        royal_advisor: "A faction offers political favors."
+      },
+      weight: 12,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Accept",
+          moralityShift: -12,
+          outcomes: [
+            {
+              chance: 65,
+              outcome: {
+                text: "You profit from the arrangement.",
+                logText: "Accepted a suspicious offer for personal gain.",
+                goldChange: 120
+              }
+            },
+            {
+              chance: 35,
+              outcome: {
+                text: "The scheme collapses and you are implicated.",
+                logText: "Suffered consequences after accepting a suspicious offer.",
+                goldChange: -150,
+                statChanges: {
+                  reputation: -12,
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Refuse",
+          moralityShift: 8,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You keep your conscience clear.",
+                logText: "Refused a suspicious offer.",
+                statChanges: {
+                  reputation: 5
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   startingBackgrounds: [
