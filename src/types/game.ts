@@ -39,7 +39,7 @@ export interface EventOutcome {
   itemReward?: Omit<InventoryItem, 'id'>;
   removeItemName?: string;
   relationshipChange?: {
-    type: 'spouse' | 'child' | 'friend' | 'modify';
+    type: 'spouse' | 'child' | 'friend' | 'sibling' | 'modify';
     name?: string;
     amount?: number;
     relationId?: string; // used for updating existing relation

@@ -917,23 +917,39 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Relationship changes
       if (selectedOutcome.relationshipChange) {
         const rc = selectedOutcome.relationshipChange;
-        if (rc.type === 'spouse' || rc.type === 'child' || rc.type === 'friend') {
+        if (rc.type === 'spouse' || rc.type === 'child' || rc.type === 'friend' || rc.type === 'sibling') {
           const generatedName = generateRandomName('non-binary', activeExpansion);
           const name = rc.name || `${generatedName.first} ${prev.dynastyName}`;
           
+          let age = prev.age + Math.floor(Math.random() * 5) - 2;
+          if (rc.type === 'child') {
+            age = 0;
+          } else if (rc.type === 'sibling') {
+            age = Math.max(0, prev.age + Math.floor(Math.random() * 9) - 4);
+          }
+
           const newRelation: Relationship = {
             id: `relation_${Date.now()}`,
             name,
             type: rc.type,
             relationship: rc.amount || 75,
             status: 'alive',
-            age: rc.type === 'child' ? 0 : prev.age + Math.floor(Math.random() * 5) - 2
+            age
           };
           relationships.push(newRelation);
         } 
         else if (rc.type === 'modify') {
+          let targetId = rc.relationId;
+          // Support generic targets: match first living relation of type
+          if (targetId === 'spouse' || targetId === 'sibling' || targetId === 'child' || targetId === 'friend') {
+            const match = relationships.find(r => r.type === targetId && r.status === 'alive');
+            if (match) {
+              targetId = match.id;
+            }
+          }
+
           relationships = relationships.map(r => {
-            if (r.id === rc.relationId || r.type === 'spouse') { // modify matching or default spouse
+            if (r.id === targetId || (targetId === 'spouse' && r.type === 'spouse')) { 
               return { ...r, relationship: Math.max(0, Math.min(100, r.relationship + (rc.amount || 0))) };
             }
             return r;
