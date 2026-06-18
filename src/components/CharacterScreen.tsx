@@ -251,6 +251,26 @@ export const CharacterScreen: React.FC = () => {
             </div>
           </div>
 
+          {/* Character Traits */}
+          <div className="border-t border-card-border pt-4">
+            <h4 className="text-xs font-bold text-text-heading uppercase tracking-wider mb-2">Active Traits</h4>
+            {character.traits.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {character.traits.map(trait => (
+                  <span 
+                    key={trait} 
+                    className="px-3 py-1 bg-primary/10 text-primary border border-primary/20 text-xs font-bold uppercase tracking-wider"
+                    style={{ borderRadius: activeExpansion.theme.borderRadius }}
+                  >
+                    {trait}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-text-sub italic">No active personality traits yet.</p>
+            )}
+          </div>
+
           {/* Active World Event modifiers details */}
           {worldEvent && (
             <div 

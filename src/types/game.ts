@@ -50,6 +50,8 @@ export interface EventOutcome {
     careerTitle?: string;
     salary?: number;
   };
+  addTraits?: string[];
+  removeTraits?: string[];
   titleChange?: string;
   death?: boolean;
   deathReason?: string;
@@ -68,6 +70,8 @@ export interface Choice {
     minStats?: Partial<Record<StatName, number>>;
     minGold?: number;
     careerId?: string;
+    requiredTraits?: string[];
+    forbiddenTraits?: string[];
   };
   outcomes: ChanceOutcome[]; // The sum of chances should be 100
 }
@@ -86,6 +90,8 @@ export interface GameEvent {
     activeWorldEventId?: string;
     minStats?: Partial<Record<StatName, number>>;
     familyBackgroundId?: string;
+    requiredTraits?: string[];
+    forbiddenTraits?: string[];
   };
   choices: Choice[];
 }
@@ -112,6 +118,7 @@ export interface Character {
   gold: number;
   title: string;
   familyBackgroundId: string;
+  traits: string[];
   career?: {
     id: string;
     title: string;

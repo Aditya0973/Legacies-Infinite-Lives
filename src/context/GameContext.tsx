@@ -201,6 +201,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       gold: startingGold,
       title: startingTitle,
       familyBackgroundId: selectedBg.id,
+      traits: [],
       relationships: initialRelationships,
       inventory: [],
       journal: [journalText],
@@ -784,6 +785,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (!hasChildren) return false;
           }
           if (r.familyBackgroundId && character.familyBackgroundId !== r.familyBackgroundId) return false;
+          if (r.requiredTraits && !r.requiredTraits.every(t => character.traits.includes(t))) return false;
+          if (r.forbiddenTraits && r.forbiddenTraits.some(t => character.traits.includes(t))) return false;
           if (r.minStats) {
             for (const [stat, val] of Object.entries(r.minStats)) {
               if (newStats[stat as StatName] < (val || 0)) return false;
@@ -964,6 +967,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      let traits = [...prev.traits];
+      if (selectedOutcome.addTraits) {
+        selectedOutcome.addTraits.forEach(t => {
+          if (!traits.includes(t)) traits.push(t);
+        });
+      }
+      if (selectedOutcome.removeTraits) {
+        traits = traits.filter(t => !selectedOutcome.removeTraits!.includes(t));
+      }
+
       // Death outcome
       if (selectedOutcome.death) {
         isDead = true;
@@ -983,6 +996,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         inventory,
         isDead,
         deathReason,
+        traits,
         journal: logs
       };
     });
@@ -1088,6 +1102,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       nextBgId = 'merchant';
     }
 
+    // Heir inherits some random traits from parent (40% chance to inherit one of parent's traits)
+    let heirTraits: string[] = [];
+    if (character.traits.length > 0 && Math.random() < 0.4) {
+      const inheritedTrait = character.traits[Math.floor(Math.random() * character.traits.length)];
+      heirTraits.push(inheritedTrait);
+    }
+
     const nextChar: Character = {
       name: child.name.split(' ')[0], // Keep child name
       dynastyName: character.dynastyName,
@@ -1097,6 +1118,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       gold: inheritedGold,
       title: character.title.includes('Noble') ? 'Gentry' : activeExpansion.startingTitles[0], // lose some status, keep some
       familyBackgroundId: nextBgId,
+      traits: heirTraits,
       relationships: newRelationships,
       inventory: inheritedInventory,
       journal: [

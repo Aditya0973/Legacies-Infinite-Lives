@@ -39,6 +39,8 @@ export const EventModal: React.FC = () => {
     const reqs = choice.requirements;
     if (reqs.minGold && character.gold < reqs.minGold) return false;
     if (reqs.careerId && character.career?.id !== reqs.careerId) return false;
+    if (reqs.requiredTraits && !reqs.requiredTraits.every(t => character.traits.includes(t))) return false;
+    if (reqs.forbiddenTraits && reqs.forbiddenTraits.some(t => character.traits.includes(t))) return false;
     if (reqs.minStats) {
       for (const [stat, val] of Object.entries(reqs.minStats)) {
         if (character.stats[stat as StatName] < (val || 0)) return false;
@@ -55,6 +57,12 @@ export const EventModal: React.FC = () => {
     if (reqs.careerId) {
       const careerName = activeExpansion.careers.find(c => c.id === reqs.careerId)?.title || 'Career';
       items.push(`Job: ${careerName}`);
+    }
+    if (reqs.requiredTraits) {
+      reqs.requiredTraits.forEach(t => items.push(`Trait: ${t}`));
+    }
+    if (reqs.forbiddenTraits) {
+      reqs.forbiddenTraits.forEach(t => items.push(`No Trait: ${t}`));
     }
     if (reqs.minStats) {
       for (const [stat, val] of Object.entries(reqs.minStats)) {
@@ -183,6 +191,22 @@ export const EventModal: React.FC = () => {
                       <span>Social Status raised to: <strong>{currentEventOutcome.titleChange}</strong></span>
                     </div>
                   )}
+
+                  {/* Trait Gains */}
+                  {currentEventOutcome.addTraits && currentEventOutcome.addTraits.map(t => (
+                    <div key={t} className="flex items-center gap-2 text-md text-emerald-600 font-bold">
+                      <Sparkles size={16} />
+                      <span>Gained Trait: <strong>{t}</strong></span>
+                    </div>
+                  ))}
+
+                  {/* Trait Loss */}
+                  {currentEventOutcome.removeTraits && currentEventOutcome.removeTraits.map(t => (
+                    <div key={t} className="flex items-center gap-2 text-md text-rose-500 font-bold">
+                      <Sparkles size={16} />
+                      <span>Lost Trait: <strong>{t}</strong></span>
+                    </div>
+                  ))}
 
                   {/* Death */}
                   {currentEventOutcome.death && (
