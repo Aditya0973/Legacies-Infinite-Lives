@@ -17,11 +17,6 @@ export const getAvailableExpansions = (): { id: string; name: string; descriptio
       id: 'fantasy',
       name: 'Fantasy Realms',
       description: 'An era of magic, dragons, cathedral sieges, and chivalric knights.'
-    },
-    {
-      id: 'pirate',
-      name: 'Pirate Seas',
-      description: 'A life of sails, rum-smuggling, naval blockades, and ship plundering.'
     }
   ];
 };
