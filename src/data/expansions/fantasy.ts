@@ -441,6 +441,205 @@ export const fantasyExpansion: Expansion = {
           ]
         }
       ]
+    },
+    {
+      id: "travelling_merchant",
+      title: "Travelling Merchant",
+      text: "A colourful merchant caravan arrives in town carrying exotic wares from distant kingdoms.",
+      weight: 12,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Browse the wares",
+          moralityShift: 2,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You discover useful goods and make a fair purchase.",
+                logText: "Purchased useful goods from a travelling merchant.",
+                statChanges: {
+                  happiness: 8
+                },
+                goldChange: -25
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "You accidentally buy an overpriced trinket.",
+                logText: "Overpaid for a useless trinket.",
+                statChanges: {
+                  happiness: -3
+                },
+                goldChange: -50
+              }
+            }
+          ]
+        },
+        {
+          text: "Help the merchant unload supplies",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "The grateful merchant rewards your effort.",
+                logText: "Helped a travelling merchant and earned a reward.",
+                statChanges: {
+                  reputation: 5,
+                  happiness: 5
+                },
+                goldChange: 40
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "A crate falls on your foot during unloading.",
+                logText: "Was injured while helping a merchant.",
+                statChanges: {
+                  health: -10
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "mysterious_shrine",
+      title: "Mysterious Shrine",
+      text: "Deep in the forest you discover a forgotten shrine glowing with faint magical energy.",
+      weight: 8,
+      requirements: {
+        minAge: 12
+      },
+      choices: [
+        {
+          text: "Offer a prayer",
+          moralityShift: 8,
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "A sense of peace fills your heart.",
+                logText: "Prayed at a mysterious shrine.",
+                statChanges: {
+                  happiness: 10,
+                  reputation: 5
+                }
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "Nothing appears to happen.",
+                logText: "Visited a shrine but received no blessing.",
+                statChanges: {
+                  happiness: 2
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Search for treasure",
+          moralityShift: -5,
+          outcomes: [
+            {
+              chance: 60,
+              outcome: {
+                text: "You uncover a hidden pouch of coins.",
+                logText: "Looted treasure from a shrine.",
+                goldChange: 120,
+                statChanges: {
+                  happiness: 5
+                }
+              }
+            },
+            {
+              chance: 40,
+              outcome: {
+                text: "The shrine's curse weakens you.",
+                logText: "Suffered a curse after looting a shrine.",
+                statChanges: {
+                  health: -15,
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "tavern_dispute",
+      title: "Tavern Dispute",
+      text: "Two drunken patrons begin arguing loudly. Soon the entire tavern is watching.",
+      weight: 15,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Try to calm them down",
+          moralityShift: 8,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You successfully settle the dispute.",
+                logText: "Resolved a tavern dispute peacefully.",
+                statChanges: {
+                  reputation: 8,
+                  charisma: 2
+                }
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "One of them punches you.",
+                logText: "Was injured while stopping a tavern fight.",
+                statChanges: {
+                  health: -8
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Join the fight",
+          moralityShift: -10,
+          outcomes: [
+            {
+              chance: 60,
+              outcome: {
+                text: "You win and impress the crowd.",
+                logText: "Won a tavern brawl.",
+                statChanges: {
+                  strength: 3,
+                  reputation: 3
+                }
+              }
+            },
+            {
+              chance: 40,
+              outcome: {
+                text: "You are thrown through a table.",
+                logText: "Lost a tavern brawl.",
+                statChanges: {
+                  health: -15,
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   startingBackgrounds: [
