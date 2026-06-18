@@ -53,7 +53,7 @@ export interface EventOutcome {
   titleChange?: string;
   death?: boolean;
   deathReason?: string;
-  logText: string;
+  logText: string | Record<string, string>;
 }
 
 export interface ChanceOutcome {
@@ -62,7 +62,7 @@ export interface ChanceOutcome {
 }
 
 export interface Choice {
-  text: string;
+  text: string | Record<string, string>;
   moralityShift?: number; // Positive for Honor, negative for Infamy
   requirements?: {
     minStats?: Partial<Record<StatName, number>>;
@@ -75,7 +75,7 @@ export interface Choice {
 export interface GameEvent {
   id: string;
   title: string;
-  text: string;
+  text: string | Record<string, string>;
   weight: number; // default base weight (e.g., 10)
   requirements?: {
     minAge?: number;

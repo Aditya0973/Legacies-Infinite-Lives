@@ -50,6 +50,13 @@ interface GameContextType {
   quitToMenu: () => void;
 }
 
+const resolveText = (textObj: string | Record<string, string>, careerId?: string): string => {
+  if (typeof textObj === 'string') return textObj;
+  if (!textObj) return '';
+  if (careerId && textObj[careerId]) return textObj[careerId];
+  return textObj.default || textObj[Object.keys(textObj)[0]] || '';
+};
+
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -948,7 +955,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stats.health = 0;
       }
 
-      logs.push(selectedOutcome.logText);
+      logs.push(resolveText(selectedOutcome.logText, prev.career?.id));
 
       return {
         ...prev,

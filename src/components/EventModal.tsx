@@ -3,6 +3,13 @@ import { useGame } from '../context/GameContext';
 import type { Choice, StatName } from '../types/game';
 import { Sparkles, Coins, Skull, ArrowRight } from 'lucide-react';
 
+const resolveText = (textObj: string | Record<string, string>, careerId?: string): string => {
+  if (typeof textObj === 'string') return textObj;
+  if (!textObj) return '';
+  if (careerId && textObj[careerId]) return textObj[careerId];
+  return textObj.default || textObj[Object.keys(textObj)[0]] || '';
+};
+
 export const EventModal: React.FC = () => {
   const { 
     character, 
@@ -87,12 +94,12 @@ export const EventModal: React.FC = () => {
             {/* Main Narrative text */}
             {!currentEventOutcome ? (
               <p className="text-xl text-text-main leading-relaxed font-light mb-8 italic">
-                "{currentEvent.text}"
+                "{resolveText(currentEvent.text, character.career?.id)}"
               </p>
             ) : (
               <div className="mb-8">
                 <p className="text-xl text-text-main leading-relaxed font-light mb-6">
-                  {currentEventOutcome.text}
+                  {resolveText(currentEventOutcome.text, character.career?.id)}
                 </p>
 
                 {/* Outcome Stats Box */}
@@ -188,7 +195,7 @@ export const EventModal: React.FC = () => {
                     }`}
                     style={{ borderRadius: activeExpansion.theme.borderRadius }}
                   >
-                    <span>{choice.text}</span>
+                    <span>{resolveText(choice.text, character.career?.id)}</span>
                     {!available && (
                       <span className="text-xs text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded border border-rose-500/20 uppercase tracking-wider font-sans font-bold">
                         {getRequirementsText(choice)}
