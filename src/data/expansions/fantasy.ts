@@ -1133,6 +1133,365 @@ export const fantasyExpansion: Expansion = {
           ]
         }
       ]
+    },
+    {
+      id: "helping_mother",
+      title: "Helping Mother",
+      text: {
+        default: "Your mother is busy with her daily tasks and asks for your help.",
+        farmer: "Your mother asks you to help prepare food for the workers.",
+        blacksmith: "Your mother asks you to sort supplies for the forge.",
+        merchant: "Your mother needs help organizing the family shop.",
+        noble: "Your mother asks for help preparing for important guests.",
+        royal: "Your mother asks you to assist with preparations for a royal banquet."
+      },
+      weight: 15,
+      requirements: {
+        minAge: 5,
+        maxAge: 12
+      },
+      choices: [
+        {
+          text: "Help willingly",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your mother is grateful for your assistance.",
+                logText: "Helped your mother with her responsibilities.",
+                statChanges: {
+                  happiness: 5
+                },
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "mother",
+                  amount: 10
+                },
+                addTraits: ["Kind"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Make excuses",
+          moralityShift: -2,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your mother looks disappointed.",
+                logText: "Avoided helping your mother.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "mother",
+                  amount: -8
+                },
+                addTraits: ["Lazy"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "village_fair",
+      title: "Village Fair",
+      text: {
+        default: "The annual village fair has arrived with games, food, and prizes.",
+        noble: "A grand fair has been organized for local nobles and merchants.",
+        royal: "A magnificent festival is held in honor of the royal household."
+      },
+      weight: 12,
+      requirements: {
+        minAge: 5,
+        maxAge: 12
+      },
+      choices: [
+        {
+          text: "Enter a competition",
+          outcomes: [
+            {
+              chance: 65,
+              outcome: {
+                text: "You win a small prize.",
+                logText: "Won a prize at the village fair.",
+                goldChange: 15,
+                statChanges: {
+                  happiness: 8,
+                  reputation: 3
+                }
+              }
+            },
+            {
+              chance: 35,
+              outcome: {
+                text: "You fail to win anything.",
+                logText: "Lost a competition at the village fair.",
+                statChanges: {
+                  happiness: -2
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Spend your coin on treats",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You enjoy a wonderful day.",
+                logText: "Spent money enjoying the village fair.",
+                goldChange: -10,
+                statChanges: {
+                  happiness: 10
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "first_friend",
+      title: "First Friend",
+      text: "You meet another child who seems eager to spend time with you.",
+      weight: 14,
+      requirements: {
+        minAge: 6,
+        maxAge: 12
+      },
+      choices: [
+        {
+          text: "Become friends",
+          moralityShift: 3,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "A lasting friendship begins.",
+                logText: "Made your first close friend.",
+                statChanges: {
+                  happiness: 8,
+                  charisma: 2
+                },
+                addTraits: ["Kind"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Keep to yourself",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You decide to remain alone.",
+                logText: "Chose not to make a new friend.",
+                statChanges: {
+                  happiness: -2
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "childhood_illness",
+      title: "Childhood Illness",
+      text: "You wake up feeling weak and feverish.",
+      weight: 10,
+      requirements: {
+        minAge: 5,
+        maxAge: 12
+      },
+      choices: [
+        {
+          text: "Rest and recover",
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "After several days of rest, you recover.",
+                logText: "Recovered from a childhood illness.",
+                statChanges: {
+                  health: -5
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "The illness leaves you weakened.",
+                logText: "Suffered lasting effects from a childhood illness.",
+                statChanges: {
+                  health: -15,
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "sneaking_out",
+      title: "Sneaking Out",
+      text: "You are tempted to leave home after dark without permission.",
+      weight: 10,
+      requirements: {
+        minAge: 8,
+        maxAge: 12
+      },
+      choices: [
+        {
+          text: "Sneak out",
+          moralityShift: -4,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You enjoy an exciting adventure.",
+                logText: "Snuck out at night.",
+                statChanges: {
+                  happiness: 8
+                },
+                addTraits: ["Rebellious"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "Your parents catch you and punish you.",
+                logText: "Was caught sneaking out.",
+                statChanges: {
+                  happiness: -8
+                },
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "father",
+                  amount: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Stay home",
+          moralityShift: 2,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You decide not to take the risk.",
+                logText: "Stayed home instead of sneaking out.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "school_lesson",
+      title: "Important Lesson",
+      text: "A teacher presents a difficult lesson and asks the class questions.",
+      weight: 14,
+      requirements: {
+        minAge: 7,
+        maxAge: 12
+      },
+      choices: [
+        {
+          text: "Pay close attention",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You learn something valuable.",
+                logText: "Studied diligently during a lesson.",
+                statChanges: {
+                  intelligence: 5
+                },
+                addTraits: ["Ambitious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Daydream instead",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You miss much of the lesson.",
+                logText: "Ignored an important lesson.",
+                statChanges: {
+                  intelligence: -2
+                },
+                addTraits: ["Lazy"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "family_argument",
+      title: "Family Argument",
+      text: "Your parents have a serious disagreement at home.",
+      weight: 8,
+      requirements: {
+        minAge: 6,
+        maxAge: 12
+      },
+      choices: [
+        {
+          text: "Try to calm things down",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "Your efforts help ease tensions.",
+                logText: "Helped calm a family argument.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "mother",
+                  amount: 5
+                },
+                addTraits: ["Kind"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "The argument continues despite your efforts.",
+                logText: "Failed to calm a family argument.",
+                statChanges: {
+                  happiness: -3
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Stay out of it",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You avoid getting involved.",
+                logText: "Stayed out of a family argument.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   startingBackgrounds: [
