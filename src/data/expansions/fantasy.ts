@@ -1492,6 +1492,760 @@ export const fantasyExpansion: Expansion = {
           ]
         }
       ]
+    },
+    {
+      id: "sibling_rivalry",
+      title: "Sibling Rivalry",
+      text: {
+        default: "A disagreement with your sibling has grown into a serious feud.",
+        farmer: "Your sibling claims they worked harder on the family land than you.",
+        blacksmith: "Your sibling asks why you get to sort supplies while they do the heavy lifting.",
+        merchant: "Your sibling accuses you of receiving a larger share of family profits.",
+        noble: "Your sibling believes you receive more favor from your family.",
+        royal: "Your sibling believes you receive more favor from your family."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 18,
+        hasSibling: true
+      },
+      choices: [
+        {
+          text: "Attempt reconciliation",
+          moralityShift: 6,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "You manage to settle your differences.",
+                logText: "Reconciled with a sibling after a dispute.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: 15
+                },
+                statChanges: {
+                  happiness: 5,
+                  reputation: 3
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "Your sibling refuses to forgive you.",
+                logText: "Failed to reconcile with a sibling.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Escalate the feud",
+          moralityShift: -8,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "The relationship deteriorates further.",
+                logText: "Escalated a feud with a sibling.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: -20
+                },
+                addTraits: ["Greedy"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "arranged_marriage_offer",
+      title: "Arranged Marriage Offer",
+      text: {
+        default: "Your family proposes a marriage that could improve your standing.",
+        farmer: "A neighboring farming family proposes a marriage alliance.",
+        blacksmith: "A wealthy metalworker family seeks a union with yours.",
+        merchant: "A wealthy trading family seeks to unite their business with yours.",
+        noble: "A powerful noble house offers a marriage alliance.",
+        royal: "A politically important royal marriage is proposed."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 18,
+        hasSpouse: false
+      },
+      choices: [
+        {
+          text: "Accept",
+          moralityShift: 2,
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "The arrangement proves beneficial.",
+                logText: "Accepted an arranged marriage.",
+                goldChange: 150,
+                relationshipChange: {
+                  type: "spouse"
+                },
+                statChanges: {
+                  reputation: 8,
+                  happiness: 3
+                }
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "The marriage is difficult despite its advantages.",
+                logText: "Accepted an arranged marriage that brought little happiness.",
+                goldChange: 100,
+                relationshipChange: {
+                  type: "spouse",
+                  amount: 40
+                },
+                statChanges: {
+                  happiness: -10,
+                  reputation: 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Refuse",
+          moralityShift: 4,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You choose your own path.",
+                logText: "Refused an arranged marriage proposal.",
+                statChanges: {
+                  happiness: 5
+                },
+                addTraits: ["Rebellious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "family_secret",
+      title: "A Family Secret",
+      text: {
+        default: "You uncover information that could damage your family's reputation.",
+        farmer: "You discover your family's records of taxes were fabricated.",
+        blacksmith: "You discover your family has been selling low-quality metal to the military.",
+        merchant: "You discover evidence of questionable business dealings.",
+        noble: "You learn of a scandal hidden by your family for years.",
+        royal: "You uncover a politically dangerous secret."
+      },
+      weight: 7,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Keep the secret",
+          moralityShift: 8,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You protect your family.",
+                logText: "Protected a family secret.",
+                statChanges: {
+                  reputation: 5
+                },
+                addTraits: ["Responsible"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Exploit the secret",
+          moralityShift: -12,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You gain leverage and wealth.",
+                logText: "Used a family secret for personal gain.",
+                goldChange: 200,
+                addTraits: ["Greedy"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "The truth comes out and damages everyone involved.",
+                logText: "A family secret became public and caused scandal.",
+                statChanges: {
+                  reputation: -15,
+                  happiness: -10
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "family_sickness",
+      title: "Sickness in the Family",
+      text: {
+        default: "A close family member has fallen seriously ill.",
+        farmer: "Your family struggles to work the land while a loved one is bedridden.",
+        merchant: "Your business suffers as you care for a sick relative.",
+        noble: "A respected member of your house has become gravely ill.",
+        royal: "The illness of a family member has become a matter of public concern."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Pay for the best treatment",
+          moralityShift: 6,
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "The treatment succeeds.",
+                logText: "Paid for treatment that saved a family member.",
+                goldChange: -150,
+                statChanges: {
+                  happiness: 8,
+                  reputation: 3
+                },
+                addTraits: ["Kind"]
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "Despite your efforts, the illness persists.",
+                logText: "Spent heavily on treatment with little success.",
+                goldChange: -150,
+                statChanges: {
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Rely on prayers and hope",
+          moralityShift: 2,
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "The family member slowly recovers.",
+                logText: "A family member recovered unexpectedly.",
+                statChanges: {
+                  happiness: 5
+                }
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "The illness worsens.",
+                logText: "A family member's condition worsened.",
+                statChanges: {
+                  happiness: -8
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "siblings_wedding",
+      title: "Sibling's Wedding",
+      text: {
+        default: "Your sibling is getting married and expects a meaningful gift from you."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 18,
+        hasSibling: true
+      },
+      choices: [
+        {
+          text: "Give an expensive gift",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your generosity is greatly appreciated.",
+                logText: "Gave an expensive wedding gift to a sibling.",
+                goldChange: -100,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: 15
+                },
+                statChanges: {
+                  reputation: 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Give a modest gift",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your sibling appreciates the gesture.",
+                logText: "Gave a modest wedding gift to a sibling.",
+                goldChange: -25,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Skip the wedding",
+          moralityShift: -6,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your absence causes resentment.",
+                logText: "Skipped a sibling's wedding.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: -15
+                },
+                statChanges: {
+                  reputation: -3
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "distant_cousin_visit",
+      title: "A Distant Cousin",
+      text: {
+        default: "A distant cousin arrives seeking assistance.",
+        farmer: "A struggling cousin asks for food and shelter.",
+        merchant: "A cousin seeks funding for a risky venture.",
+        noble: "A distant relative asks for political support.",
+        royal: "A forgotten branch of the family seeks royal favor."
+      },
+      weight: 9,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Help them",
+          moralityShift: 6,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "Your kindness is remembered.",
+                logText: "Helped a distant cousin in need.",
+                goldChange: -75,
+                statChanges: {
+                  happiness: 5,
+                  reputation: 5
+                },
+                addTraits: ["Kind"]
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "The help is wasted and nothing comes of it.",
+                logText: "Assisted a cousin who squandered the opportunity.",
+                goldChange: -75,
+                statChanges: {
+                  happiness: -3
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Refuse",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You keep your resources but earn some criticism.",
+                logText: "Refused to help a distant cousin.",
+                statChanges: {
+                  reputation: -2
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "sibling_asks_for_loan",
+      title: "A Sibling's Request",
+      text: {
+        default: "Your sibling approaches you asking for financial assistance.",
+        farmer: "Your sibling's farm is struggling after a poor harvest.",
+        merchant: "Your sibling's business is on the verge of collapse.",
+        noble: "Your sibling has fallen into debt after a costly mistake.",
+        royal: "A member of your royal family requests funds to resolve a scandal."
+      },
+      weight: 9,
+      requirements: {
+        minAge: 18,
+        hasSibling: true
+      },
+      choices: [
+        {
+          text: "Provide the full loan",
+          moralityShift: 8,
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "Your sibling is deeply grateful.",
+                logText: "Provided a generous loan to a sibling.",
+                goldChange: -150,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: 15
+                },
+                addTraits: ["Kind"]
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "The money is wasted, but your sibling appreciates the effort.",
+                logText: "Loaned money that was ultimately squandered.",
+                goldChange: -150,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: 8
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Offer partial help",
+          moralityShift: 3,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your sibling appreciates the assistance.",
+                logText: "Provided partial financial support to a sibling.",
+                goldChange: -75,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Refuse",
+          moralityShift: -5,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your sibling leaves disappointed.",
+                logText: "Refused a sibling's request for help.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: -12
+                },
+                addTraits: ["Greedy"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "child_shows_talent",
+      title: "A Gifted Child",
+      text: {
+        default: "One of your children shows remarkable potential.",
+        farmer: "Your child displays an exceptional talent for managing the land.",
+        merchant: "Your child demonstrates a natural talent for trade.",
+        knight: "Your child shows promise in combat and leadership.",
+        mage: "Your child exhibits unusual magical aptitude.",
+        noble: "Your child impresses tutors with their intelligence.",
+        royal: "Your child is already attracting attention at court."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 25,
+        hasChildren: true
+      },
+      choices: [
+        {
+          text: "Invest heavily in their future",
+          moralityShift: 6,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "Your investment greatly benefits your child.",
+                logText: "Invested heavily in a talented child.",
+                goldChange: -200,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "child",
+                  amount: 15
+                },
+                statChanges: {
+                  reputation: 5,
+                  happiness: 5
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "The investment yields disappointing results.",
+                logText: "Invested heavily in a child with little return.",
+                goldChange: -200,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "child",
+                  amount: 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Offer encouragement only",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your child appreciates your support.",
+                logText: "Encouraged a talented child.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "child",
+                  amount: 8
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Ignore it",
+          moralityShift: -4,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your child feels neglected.",
+                logText: "Ignored a child's talents.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "child",
+                  amount: -15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "elderly_parent_care",
+      title: "Aging Parent",
+      text: {
+        default: "One of your parents can no longer care for themselves properly."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 25
+      },
+      choices: [
+        {
+          text: "Personally care for them",
+          moralityShift: 10,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your parent is comforted by your presence.",
+                logText: "Personally cared for an aging parent.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "mother",
+                  amount: 10
+                },
+                statChanges: {
+                  happiness: -3,
+                  reputation: 5
+                },
+                addTraits: ["Kind"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Hire professional help",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your parent receives proper care.",
+                logText: "Paid for professional care for an aging parent.",
+                goldChange: -100,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "mother",
+                  amount: 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Do nothing",
+          moralityShift: -10,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your parent feels abandoned.",
+                logText: "Neglected an aging parent.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "mother",
+                  amount: -15
+                },
+                statChanges: {
+                  reputation: -8
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "sibling_land_dispute",
+      title: "Disputed Inheritance",
+      text: {
+        default: "A disagreement arises over ownership of family land.",
+        farmer: "The family farm is at the center of a bitter dispute.",
+        merchant: "A valuable family property has become contested.",
+        noble: "Several heirs claim ownership of an estate.",
+        royal: "A succession dispute threatens family stability."
+      },
+      weight: 7,
+      requirements: {
+        minAge: 18,
+        hasSibling: true
+      },
+      choices: [
+        {
+          text: "Divide it fairly",
+          moralityShift: 10,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Everyone receives a reasonable share.",
+                logText: "Resolved an inheritance dispute fairly.",
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: 15
+                },
+                statChanges: {
+                  reputation: 8
+                },
+                addTraits: ["Honest"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Negotiate for more",
+          moralityShift: -2,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You secure a larger share.",
+                logText: "Negotiated aggressively during an inheritance dispute.",
+                goldChange: 150,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: -8
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Claim everything",
+          moralityShift: -15,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You take complete control of the inheritance.",
+                logText: "Claimed an entire inheritance for yourself.",
+                goldChange: 300,
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "sibling",
+                  amount: -25
+                },
+                statChanges: {
+                  reputation: -10
+                },
+                addTraits: ["Greedy"]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   startingBackgrounds: [

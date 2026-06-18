@@ -776,13 +776,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (r.careerId && activeJob?.id !== r.careerId) return false;
           if (r.activeWorldEventId && activeWorldEvent?.id !== r.activeWorldEventId) return false;
           
-          if (r.hasSpouse) {
+           if (r.hasSpouse) {
             const hasSpouse = activeRelations.some(rel => rel.type === 'spouse' && rel.status === 'alive');
             if (!hasSpouse) return false;
           }
           if (r.hasChildren) {
             const hasChildren = activeRelations.some(rel => rel.type === 'child' && rel.status === 'alive');
             if (!hasChildren) return false;
+          }
+          if (r.hasSibling) {
+            const hasSibling = activeRelations.some(rel => rel.type === 'sibling' && rel.status === 'alive');
+            if (!hasSibling) return false;
           }
           if (r.familyBackgroundId && character.familyBackgroundId !== r.familyBackgroundId) return false;
           if (r.requiredTraits && !r.requiredTraits.every(t => character.traits.includes(t))) return false;

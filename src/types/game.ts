@@ -87,6 +87,7 @@ export interface GameEvent {
     careerId?: string;
     hasSpouse?: boolean;
     hasChildren?: boolean;
+    hasSibling?: boolean;
     activeWorldEventId?: string;
     minStats?: Partial<Record<StatName, number>>;
     familyBackgroundId?: string;
