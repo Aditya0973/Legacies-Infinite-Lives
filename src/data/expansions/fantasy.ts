@@ -950,6 +950,189 @@ export const fantasyExpansion: Expansion = {
           ]
         }
       ]
+    },
+    {
+      id: "helping_father",
+      title: "Helping Father",
+      text: {
+        default: "Your father is struggling with today's work and asks for your help.",
+        farmer: "Your father asks you to help gather crops from the field.",
+        blacksmith: "Your father asks you to help organize tools in the forge.",
+        merchant: "Your father asks you to help count inventory.",
+        noble: "Your father asks you to accompany him during estate inspections.",
+        royal: "Your father invites you to observe an important court meeting."
+      },
+      weight: 15,
+      requirements: {
+        minAge: 4,
+        maxAge: 8
+      },
+      choices: [
+        {
+          text: "Help enthusiastically",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your father appreciates your effort.",
+                logText: "Helped your father with his responsibilities.",
+                statChanges: {
+                  happiness: 5,
+                  reputation: 2
+                },
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "father",
+                  amount: 10
+                },
+                addTraits: ["Kind"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Refuse and go play",
+          moralityShift: -3,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your father seems disappointed.",
+                logText: "Refused to help your father.",
+                statChanges: {
+                  happiness: 3
+                },
+                relationshipChange: {
+                  type: "modify",
+                  relationId: "father",
+                  amount: -8
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "family_pet",
+      title: "A Family Pet",
+      text: {
+        default: "A small animal has wandered near your home.",
+        farmer: "A stray sheep follows you home from the fields.",
+        blacksmith: "A scruffy dog begins sleeping near the forge.",
+        merchant: "A clever cat starts visiting your family's shop.",
+        noble: "A hunting hound puppy is gifted to your family.",
+        royal: "An exotic bird is gifted to the royal household."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 5,
+        maxAge: 10
+      },
+      choices: [
+        {
+          text: "Take care of it",
+          moralityShift: 6,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "The animal becomes your loyal companion.",
+                logText: "Raised a beloved family pet.",
+                statChanges: {
+                  happiness: 10
+                },
+                addTraits: ["Kind"]
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "Caring for the animal teaches responsibility.",
+                logText: "Learned responsibility from caring for a pet.",
+                statChanges: {
+                  intelligence: 2,
+                  happiness: 5
+                },
+                addTraits: ["Responsible"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Ignore it",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "The animal eventually wanders away.",
+                logText: "Ignored a wandering animal.",
+                statChanges: {
+                  happiness: -2
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "lost_toy",
+      title: "Lost Toy",
+      text: "While playing outside, you realize your favorite toy is missing.",
+      weight: 12,
+      requirements: {
+        minAge: 6,
+        maxAge: 11
+      },
+      choices: [
+        {
+          text: "Search the woods alone",
+          moralityShift: 1,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You find the toy after a long search.",
+                logText: "Bravely searched for and recovered a lost toy.",
+                statChanges: {
+                  happiness: 8
+                },
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "You get lost and return home frightened.",
+                logText: "Got lost while searching for a toy.",
+                statChanges: {
+                  happiness: -5,
+                  health: -3
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Ask an adult for help",
+          moralityShift: 3,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "An adult helps you recover the toy safely.",
+                logText: "Asked for help finding a lost toy.",
+                statChanges: {
+                  happiness: 5
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   startingBackgrounds: [
