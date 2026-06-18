@@ -85,6 +85,7 @@ export interface GameEvent {
     hasChildren?: boolean;
     activeWorldEventId?: string;
     minStats?: Partial<Record<StatName, number>>;
+    familyBackgroundId?: string;
   };
   choices: Choice[];
 }
@@ -110,6 +111,7 @@ export interface Character {
   stats: Record<StatName, number>;
   gold: number;
   title: string;
+  familyBackgroundId: string;
   career?: {
     id: string;
     title: string;

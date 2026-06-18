@@ -200,6 +200,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       stats,
       gold: startingGold,
       title: startingTitle,
+      familyBackgroundId: selectedBg.id,
       relationships: initialRelationships,
       inventory: [],
       journal: [journalText],
@@ -782,6 +783,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const hasChildren = activeRelations.some(rel => rel.type === 'child' && rel.status === 'alive');
             if (!hasChildren) return false;
           }
+          if (r.familyBackgroundId && character.familyBackgroundId !== r.familyBackgroundId) return false;
           if (r.minStats) {
             for (const [stat, val] of Object.entries(r.minStats)) {
               if (newStats[stat as StatName] < (val || 0)) return false;
@@ -1068,6 +1070,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     ];
 
+    // Determine dynamic background for heir based on parent's final title/achievements
+    let nextBgId = 'farmer';
+    if (character.title.includes('Prince') || character.title.includes('Princess') || character.title.includes('King') || character.title.includes('Queen') || character.title.includes('Royal')) {
+      nextBgId = 'royal';
+    } else if (character.title.includes('Noble') || character.title.includes('Gentry') || character.title.includes('Duke') || character.title.includes('Baron')) {
+      nextBgId = 'noble';
+    } else if (character.career?.id === 'royal_advisor' || character.career?.id === 'knight') {
+      nextBgId = 'noble';
+    } else if (character.career?.id === 'mage') {
+      nextBgId = 'merchant';
+    } else if (character.career?.id === 'blacksmith') {
+      nextBgId = 'blacksmith';
+    } else if (character.career?.id === 'farmer') {
+      nextBgId = 'farmer';
+    } else if (character.gold > 500) {
+      nextBgId = 'merchant';
+    }
+
     const nextChar: Character = {
       name: child.name.split(' ')[0], // Keep child name
       dynastyName: character.dynastyName,
@@ -1076,6 +1096,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       stats: startingStats,
       gold: inheritedGold,
       title: character.title.includes('Noble') ? 'Gentry' : activeExpansion.startingTitles[0], // lose some status, keep some
+      familyBackgroundId: nextBgId,
       relationships: newRelationships,
       inventory: inheritedInventory,
       journal: [
