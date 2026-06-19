@@ -2984,6 +2984,864 @@ export const fantasyExpansion: Expansion = {
           ]
         }
       ]
+    },
+    {
+      id: "bandit_raid",
+      title: "Bandit Raid",
+      text: {
+        default: "A group of bandits attacks your local settlement, looting and burning.",
+        farmer: "A group of outlaw bandits raids your farm, demanding your winter store of grain.",
+        blacksmith: "Rogue mercenaries raid your forge, demanding weapons and steel.",
+        merchant: "Highwaymen ambush your trading caravan on the road.",
+        noble: "A bandit army besieges your estate's outlying granaries."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Fight back",
+          outcomes: [
+            {
+              chance: 40,
+              outcome: {
+                text: "You drive them off with brute force and claim their dropped weapons!",
+                logText: "Fought off bandits and claimed their weapons.",
+                goldChange: 50,
+                statChanges: {
+                  reputation: 20
+                },
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 60,
+              outcome: {
+                text: "You are badly beaten and left wounded. The bandits loot your gold.",
+                logText: "Wounded by bandits during a raid.",
+                goldChange: -50,
+                statChanges: {
+                  health: -30,
+                  happiness: -10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Hide in safety",
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You successfully hide while the town is pillaged. You lose only a little gold.",
+                logText: "Hid during a bandit raid.",
+                goldChange: -10,
+                addTraits: ["Cautious"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "They discover your hiding spot anyway, beating you and taking your pouch.",
+                logText: "Discovered and looted by bandits.",
+                goldChange: -50,
+                statChanges: {
+                  health: -10,
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Pay them off (Cost: 100 G)",
+          requirements: {
+            minGold: 100
+          },
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You bribe the bandits to leave you in peace. They take the gold and ride away.",
+                logText: "Bribed bandits to spare your assets.",
+                goldChange: -100,
+                statChanges: {
+                  reputation: -5
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "failed_harvest_disaster",
+      title: "Supply Crisis",
+      text: {
+        default: "A severe supply shortage impacts the realm's trade and resources.",
+        farmer: "A sudden blight sweeps the valley, causing your crops to wither in the soil.",
+        merchant: "A trade embargo blocks key shipments, causing a critical goods shortage.",
+        noble: "Tensions in outlying provinces cause tax collection revenues to plummet.",
+        royal: "Tensions in outlying provinces cause tax collection revenues to plummet."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Invest savings to recover (Cost: 100 G)",
+          requirements: {
+            minGold: 100
+          },
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "Your investment successfully stabilizes your operations.",
+                logText: "Spent savings to weather a supply crisis.",
+                goldChange: -100,
+                statChanges: {
+                  reputation: 5
+                },
+                addTraits: ["Responsible"]
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "Despite your spending, the crisis deepens and the money is wasted.",
+                logText: "Spent money in vain trying to resolve a supply crisis.",
+                goldChange: -100,
+                statChanges: {
+                  happiness: -15
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Cut expenses to survive",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You cut back on basic needs, surviving at the expense of your comfort.",
+                logText: "Cut personal expenses to survive the supply crisis.",
+                statChanges: {
+                  happiness: -20,
+                  reputation: -5
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Borrow from lenders",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Local loan sharks lend you gold, but demand aggressive future favors.",
+                logText: "Borrowed money to survive the crisis.",
+                goldChange: 80,
+                statChanges: {
+                  reputation: -10
+                },
+                addTraits: ["Rebellious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "dangerous_illness",
+      title: "Dangerous Illness",
+      text: {
+        default: "A dangerous, feverish plague sweeps the region, and you wake up coughing blood."
+      },
+      weight: 9,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Seek premium apothecary care (Cost: 150 G)",
+          requirements: {
+            minGold: 150
+          },
+          outcomes: [
+            {
+              chance: 90,
+              outcome: {
+                text: "The apothecary's elixirs prove effective. You make a full recovery.",
+                logText: "Cured of a dangerous illness by premium care.",
+                goldChange: -150,
+                statChanges: {
+                  health: 10
+                },
+                addTraits: ["Cautious"]
+              }
+            },
+            {
+              chance: 10,
+              outcome: {
+                text: "The expensive treatment fails to cure you, draining your constitution.",
+                logText: "Sought premium medical care but remained sick.",
+                goldChange: -150,
+                statChanges: {
+                  health: -30
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Rest and recover naturally",
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "You manage to sweat out the fever naturally.",
+                logText: "Recovered from illness naturally.",
+                statChanges: {
+                  health: 5
+                }
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "Your condition worsens significantly.",
+                logText: "Suffered a worsening condition from untreated illness.",
+                statChanges: {
+                  health: -25,
+                  happiness: -10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Ignore the symptoms",
+          outcomes: [
+            {
+              chance: 30,
+              outcome: {
+                text: "Your body fights it off. You walk it off and feel tougher.",
+                logText: "Ignored symptoms and recovered naturally.",
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 55,
+              outcome: {
+                text: "You collapse in the streets. You are severely weakened by the disease.",
+                logText: "Collapsed due to ignoring illness.",
+                statChanges: {
+                  health: -20,
+                  happiness: -15
+                }
+              }
+            },
+            {
+              chance: 15,
+              outcome: {
+                text: "The fever boils your brain, and you succumb to the plague.",
+                logText: "Succumbed to a dangerous fever.",
+                death: true,
+                deathReason: "Succumbed to a deadly plague."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "house_fire",
+      title: "House Fire",
+      text: {
+        default: "A candle tips over, engulfing your home in flames.",
+        farmer: "A stray ember ignites your family barn.",
+        blacksmith: "A furnace explosion engulfs the forge in flames.",
+        merchant: "Arsonists set fire to your primary merchandise warehouse.",
+        noble: "A candle tips over, engulfing a wing of your manor house.",
+        royal: "A political saboteur sets fire to the palace archives."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Save trapped neighbors",
+          outcomes: [
+            {
+              chance: 60,
+              outcome: {
+                text: "Heroic rescue! You pull everyone to safety, though you inhale severe smoke.",
+                logText: "Rescued people from a house fire.",
+                statChanges: {
+                  health: -10,
+                  happiness: 15,
+                  reputation: 20
+                },
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 40,
+              outcome: {
+                text: "You rush in but are severely burned before you are forced to retreat.",
+                logText: "Severely burned while trying to rescue neighbors.",
+                statChanges: {
+                  health: -40,
+                  happiness: -10,
+                  reputation: 10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Save your gold chest",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You salvage your money chest, but suffer burns and public criticism.",
+                logText: "Prioritized saving a gold chest during a fire.",
+                goldChange: 100,
+                statChanges: {
+                  health: -30,
+                  reputation: -15
+                },
+                addTraits: ["Greedy"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Flee immediately",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You run outside safely, but all your household belongings burn.",
+                logText: "Fled a house fire, losing personal property.",
+                goldChange: -100,
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "friend_betrayal",
+      title: "Betrayed!",
+      text: {
+        default: "A companion you trusted has stolen your savings and shared your secrets with rivals."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Forgive and move on",
+          moralityShift: 8,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You choose peace over vengeance, gaining public respect.",
+                logText: "Forgave a companion who betrayed them.",
+                goldChange: -50,
+                statChanges: {
+                  reputation: 10
+                },
+                addTraits: ["Kind"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Demand compensation",
+          outcomes: [
+            {
+              chance: 60,
+              outcome: {
+                text: "You corner them and force them to return your gold.",
+                logText: "Recovered assets from a betrayer.",
+                goldChange: 50
+              }
+            },
+            {
+              chance: 40,
+              outcome: {
+                text: "They refuse to compensate you, leaving you empty-handed.",
+                logText: "Failed to secure compensation from a betrayer.",
+                goldChange: -50,
+                statChanges: {
+                  happiness: -10
+                },
+                addTraits: ["Rebellious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Seek dark revenge",
+          moralityShift: -12,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "You ruin their reputation through a series of anonymous rumors.",
+                logText: "Ruined a betrayer's reputation.",
+                goldChange: -50,
+                statChanges: {
+                  happiness: 10
+                },
+                addTraits: ["Rebellious"]
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "Your plot backfires, and you are caught, damaging your own reputation.",
+                logText: "Exposed while plotting revenge against a betrayer.",
+                goldChange: -50,
+                statChanges: {
+                  reputation: -30,
+                  happiness: -10
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "flood",
+      title: "Severe Flood",
+      text: {
+        default: "Heavy torrential rains cause the river to burst its banks, threating the settlement."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Help build community sandbags",
+          moralityShift: 10,
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "You save the district. The community hails you as a responsible citizen.",
+                logText: "Helped build sandbags during a flood.",
+                statChanges: {
+                  reputation: 15,
+                  health: -10
+                },
+                addTraits: ["Responsible"]
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "You are swept away by the current and suffer severe injury.",
+                logText: "Injured during flood sandbag work.",
+                statChanges: {
+                  health: -25,
+                  reputation: 10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Protect your private property",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You keep your assets dry, but neighbors resent your lack of community support.",
+                logText: "Prioritized private property during a flood.",
+                goldChange: -50,
+                statChanges: {
+                  reputation: -10
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Evacuate immediately",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You flee to high ground safely, leaving your home to flood.",
+                logText: "Evacuated during a flood.",
+                goldChange: -100,
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "false_accusation",
+      title: "False Accusation",
+      text: {
+        default: "A local rival accuses you of conspiring with tax smugglers."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Fight it in court",
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "You prove your innocence in court!",
+                logText: "Exonerated of smuggling charges.",
+                statChanges: {
+                  reputation: 15
+                },
+                addTraits: ["Honest"]
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "Corrupt judges rule against you. You are fined heavily.",
+                logText: "Falsely convicted of tax smuggling.",
+                goldChange: -150,
+                statChanges: {
+                  reputation: -20
+                },
+                addTraits: ["Rebellious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Bribe the court officials (Cost: 100 G)",
+          requirements: {
+            minGold: 100
+          },
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "The case is quietly dismissed without a public trial.",
+                logText: "Bribed officials to dismiss tax charges.",
+                goldChange: -100,
+                statChanges: {
+                  reputation: -5
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Accept the punishment",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You pay the fine and accept the public shame.",
+                logText: "Accepted tax smuggling punishment.",
+                goldChange: -50,
+                statChanges: {
+                  reputation: -15
+                },
+                addTraits: ["Responsible"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "economic_collapse_disaster",
+      title: "Economic Depression",
+      text: {
+        default: "A severe economic depression hits the realm.",
+        farmer: "Drought and heavy taxation crash grain prices across the barony.",
+        merchant: "A sudden trade guild currency devaluation collapses market demand.",
+        noble: "Dynastic wars drain the realm's treasury, collapsing estate values.",
+        royal: "Dynastic wars drain the realm's treasury, collapsing estate values."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 20
+      },
+      choices: [
+        {
+          text: "Invest in cheap assets (Cost: 150 G)",
+          requirements: {
+            minGold: 150
+          },
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "Bold recovery! You buy low and turn a massive profit as the market recovers.",
+                logText: "Profited by buying cheap assets during depression.",
+                goldChange: 400,
+                statChanges: {
+                  reputation: 10
+                },
+                addTraits: ["Ambitious"]
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "The investment collapses. You lose your savings.",
+                logText: "Lost savings investing during depression.",
+                goldChange: -150,
+                statChanges: {
+                  happiness: -15
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Wait it out passively",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "Your funds stagnate as the economic depression lingers.",
+                logText: "Waited out the economic depression.",
+                goldChange: -50,
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Liquidate assets",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You sell off personal items at a loss to maintain cash reserves.",
+                logText: "Liquidated assets during a depression.",
+                goldChange: 80,
+                statChanges: {
+                  reputation: -15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "assassination_attempt",
+      title: "Shadows in the Dark",
+      text: {
+        default: "A silent shadow slides into your chambers at night, blade drawn."
+      },
+      weight: 4,
+      requirements: {
+        minAge: 18,
+        minStats: {
+          reputation: 60
+        }
+      },
+      choices: [
+        {
+          text: "Fight back",
+          outcomes: [
+            {
+              chance: 60,
+              outcome: {
+                text: "You overpower the assassin in a chaotic grapple!",
+                logText: "Defeated an assassin in hand-to-hand combat.",
+                statChanges: {
+                  reputation: 20
+                },
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "You drive them off, but receive severe wounds in the process.",
+                logText: "Severely wounded by an assassin.",
+                statChanges: {
+                  health: -45,
+                  happiness: -10
+                }
+              }
+            },
+            {
+              chance: 10,
+              outcome: {
+                text: "The blade finds your heart. You pass away silently.",
+                logText: "Assassinated in chambers.",
+                death: true,
+                deathReason: "Assassinated in your sleep."
+              }
+            }
+          ]
+        },
+        {
+          text: "Flee into the night",
+          outcomes: [
+            {
+              chance: 90,
+              outcome: {
+                text: "You escape through the window, calling for the guards.",
+                logText: "Fled from an assassin.",
+                statChanges: {
+                  reputation: -10
+                },
+                addTraits: ["Cautious"]
+              }
+            },
+            {
+              chance: 10,
+              outcome: {
+                text: "They catch you on the terrace and stab you before fleeing.",
+                logText: "Wounded trying to escape an assassin.",
+                statChanges: {
+                  health: -35
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Bribe the assassin (Cost: 200 G)",
+          requirements: {
+            minGold: 200
+          },
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "You buy their loyalty. They reveal the rival who hired them.",
+                logText: "Bribed an assassin to obtain hiring secrets.",
+                goldChange: -200,
+                statChanges: {
+                  reputation: 15
+                },
+                addTraits: ["Ambitious"]
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "They take the gold, spit in your face, and stab you anyway.",
+                logText: "Bribed assassin but was still attacked.",
+                goldChange: -200,
+                statChanges: {
+                  health: -40
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "black_winter",
+      title: "The Black Winter",
+      text: {
+        default: "An unusually harsh, supernatural winter devastates the crops and freezes the land."
+      },
+      weight: 3,
+      requirements: {
+        minAge: 20
+      },
+      choices: [
+        {
+          text: "Share supplies with neighbors",
+          moralityShift: 10,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You share your warmth and bread. The community survives together.",
+                logText: "Shared supplies with neighbors during the Black Winter.",
+                goldChange: -100,
+                statChanges: {
+                  reputation: 20
+                },
+                addTraits: ["Kind"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Hoard your resources",
+          moralityShift: -10,
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "You stay safe and warm. You sell surplus fuel at exorbitant prices.",
+                logText: "Hoarded resources and profited during the Black Winter.",
+                goldChange: 150,
+                statChanges: {
+                  reputation: -25
+                },
+                addTraits: ["Greedy"]
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "Starving citizens riot and break into your cellars, looting your stocks.",
+                logText: "Looted by mobs during the Black Winter.",
+                goldChange: -200,
+                statChanges: {
+                  health: -20
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Flee south immediately",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You pack your bags and move south to warmer lands.",
+                logText: "Fled south during the Black Winter.",
+                goldChange: -80,
+                statChanges: {
+                  reputation: -5
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   startingBackgrounds: [
