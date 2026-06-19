@@ -2246,6 +2246,744 @@ export const fantasyExpansion: Expansion = {
           ]
         }
       ]
+    },
+    {
+      id: "travelling_merchant",
+      title: "Travelling Merchant",
+      text: {
+        default: "A travelling merchant offers a sealed wooden crate containing 'unknown wonders' for a steep price.",
+        farmer: "A merchant in a colorful wagon offers to sell you 'exotic subterranean roots' that he promises will double your harvest.",
+        merchant: "A fellow trader offers you a share in a bulk cargo of silks from the Eastern Dynasties, but refuses to show you the manifest.",
+        noble: "A merchant smuggler offers to sell you a casket of rare elixirs allegedly imported from the Elven Lands.",
+        royal: "A foreign merchant offers to sell you a collection of rare art pieces from across the sea."
+      },
+      weight: 10,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Invest in the deal (Cost: 100 G)",
+          requirements: {
+            minGold: 100
+          },
+          outcomes: [
+            {
+              chance: 60,
+              outcome: {
+                text: "The investment pays off beautifully! You discover valuable goods inside.",
+                logText: "Invested with a travelling merchant and made a handsome profit.",
+                goldChange: 250,
+                statChanges: {
+                  reputation: 5
+                }
+              }
+            },
+            {
+              chance: 40,
+              outcome: {
+                text: "It was a total scam. The crate was filled with rocks and rusted scrap.",
+                logText: "Scammed by a travelling merchant.",
+                goldChange: -100,
+                statChanges: {
+                  happiness: -10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Negotiate terms",
+          requirements: {
+            minStats: {
+              charisma: 50
+            }
+          },
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "Your sharp negotiating skills secure a discount, and the goods prove solid.",
+                logText: "Negotiated a discount with a merchant and turned a profit.",
+                goldChange: 150,
+                statChanges: {
+                  reputation: 10
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "The merchant takes offense to your low offer and packs up his stall.",
+                logText: "Failed to negotiate with a travelling merchant.",
+                statChanges: {
+                  happiness: -2
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Ignore them",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You decide it's too risky and walk away.",
+                logText: "Decided to ignore a travelling merchant's offer.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "hidden_treasure_map",
+      title: "Hidden Treasure Map",
+      text: {
+        default: "You find a dusty leather map in an old book suggesting treasure is buried nearby."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Search alone",
+          moralityShift: 2,
+          outcomes: [
+            {
+              chance: 40,
+              outcome: {
+                text: "After hours of digging, you unearth a chest of ancient coins!",
+                logText: "Found buried treasure after searching alone.",
+                goldChange: 300,
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "You step on a hidden pressure plate and get wounded by a trap.",
+                logText: "Injured by a trap while searching for treasure.",
+                statChanges: {
+                  health: -15,
+                  happiness: -10
+                }
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "You dig for hours but find nothing but dirt and worms.",
+                logText: "Searched for treasure alone but found nothing.",
+                statChanges: {
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Hire help (Cost: 80 G)",
+          requirements: {
+            minGold: 80
+          },
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "Your team successfully unearths the treasure chest. You split the bounty fairly.",
+                logText: "Hired helpers and successfully shared the treasure.",
+                goldChange: 120,
+                statChanges: {
+                  reputation: 8
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "Once the chest is found, your helpers turn on you, rob you, and flee.",
+                logText: "Robbed by helpers while searching for treasure.",
+                goldChange: -80,
+                statChanges: {
+                  happiness: -15,
+                  health: -5
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Sell the map",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You sell the map to a local collector in the tavern.",
+                logText: "Sold a mysterious treasure map.",
+                goldChange: 80,
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "wealthy_patron",
+      title: "Wealthy Patron",
+      text: {
+        default: "An influential local figure notices your potential and offers to sponsor your endeavors.",
+        farmer: "A wealthy landowner offers to sponsor your agricultural projects.",
+        merchant: "A powerful guild master offers to finance your trade caravans.",
+        noble: "A senior noble house offers to fund your courtly education.",
+        royal: "An elder statesman offers to back your political faction."
+      },
+      weight: 9,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Accept support",
+          moralityShift: -2,
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "They provide you with a substantial stipend to build your career.",
+                logText: "Accepted career support from a wealthy patron.",
+                goldChange: 150,
+                statChanges: {
+                  reputation: 10
+                },
+                addTraits: ["Ambitious"]
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "The patron turns out to be extremely demanding, harming your reputation with their scandals.",
+                logText: "Accepted support from a patron who caused public scandals.",
+                statChanges: {
+                  reputation: -10,
+                  happiness: -8
+                },
+                addTraits: ["Rebellious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Politely decline",
+          moralityShift: 5,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You maintain your independence, gaining respect for your integrity.",
+                logText: "Declined a patron's support to remain independent.",
+                statChanges: {
+                  reputation: 5
+                },
+                addTraits: ["Honest"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "mysterious_stranger",
+      title: "Mysterious Stranger",
+      text: {
+        default: "A cloaked figure approaches you at dusk, offering valuable information for a price."
+      },
+      weight: 7,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Pay for the secret (Cost: 120 G)",
+          requirements: {
+            minGold: 120
+          },
+          outcomes: [
+            {
+              chance: 65,
+              outcome: {
+                text: "The secret information allows you to exploit a major trade gap.",
+                logText: "Bought a secret that yielded high returns.",
+                goldChange: 350,
+                statChanges: {
+                  reputation: 15
+                }
+              }
+            },
+            {
+              chance: 35,
+              outcome: {
+                text: "The stranger takes your gold and whispers a useless nursery rhyme before disappearing.",
+                logText: "Swindled by a mysterious stranger.",
+                goldChange: -120,
+                statChanges: {
+                  happiness: -10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Refuse the deal",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You decline to deal with shady characters.",
+                logText: "Refused to buy secrets from a stranger.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "rare_opportunity_career",
+      title: "Rare Opportunity",
+      text: {
+        default: "An opportunity presents itself in your profession.",
+        farmer: "An elder farmer offers a batch of rare 'Aether Seeds' that grow in winter.",
+        merchant: "A contact in the capital offers to register you for a premium trade route.",
+        noble: "A foreign envoy offers a secret political alliance.",
+        royal: "A foreign envoy offers a secret political alliance."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Seize the opportunity (Cost: 100 G)",
+          requirements: {
+            minGold: 100
+          },
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: "The venture succeeds brilliantly, elevating your professional standing.",
+                logText: "Seized a professional opportunity and prospered.",
+                goldChange: 250,
+                statChanges: {
+                  reputation: 10
+                },
+                addTraits: ["Ambitious"]
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: "The opportunity backfires. You lose your investment and face scrutiny.",
+                logText: "Attempted a professional venture that failed.",
+                goldChange: -100,
+                statChanges: {
+                  reputation: -10,
+                  happiness: -10
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Skip it",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You stay with what is safe and familiar.",
+                logText: "Declined a professional opportunity.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "village_competition",
+      title: "Grand Tournament",
+      text: {
+        default: "A grand contest of skill, wits, and strength is announced in the square."
+      },
+      weight: 8,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Enter immediately",
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "Against the odds, you win the contest and claim the prize money!",
+                logText: "Won the Grand Tournament.",
+                goldChange: 150,
+                statChanges: {
+                  reputation: 15
+                },
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "You are badly beaten in the contest, leaving you bruised and humiliated.",
+                logText: "Injured and defeated in the tournament.",
+                statChanges: {
+                  health: -10,
+                  happiness: -5
+                }
+              }
+            }
+          ]
+        },
+        {
+          text: "Train and prepare (Cost: 40 G)",
+          requirements: {
+            minGold: 40
+          },
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "Your careful preparation pays off. You secure a victory and the trophy.",
+                logText: "Prepared carefully and won the tournament.",
+                goldChange: 110,
+                statChanges: {
+                  reputation: 10
+                },
+                addTraits: ["Responsible"]
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "Despite your training, you still lose the match and waste your entry fee.",
+                logText: "Trained for the tournament but still lost.",
+                goldChange: -40,
+                statChanges: {
+                  happiness: -5
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Skip it",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You decide to watch the competition comfortably from the stands.",
+                logText: "Skipped the Grand Tournament.",
+                addTraits: ["Lazy"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "forgotten_ruins",
+      title: "Forgotten Ruins",
+      text: {
+        default: "Ancient ruins are discovered deep in the nearby forest, rumored to hold relics."
+      },
+      weight: 7,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Explore them alone",
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "You navigate the traps and find a chest of ancient silver!",
+                logText: "Successfully explored forgotten ruins alone.",
+                goldChange: 250,
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "The floor collapses under you. You trigger a trap and are badly injured.",
+                logText: "Injured in collapsed ruins.",
+                statChanges: {
+                  health: -25
+                },
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Fund an expedition (Cost: 150 G)",
+          requirements: {
+            minGold: 150
+          },
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "The expedition returns safely with artifacts, giving you a huge return on investment.",
+                logText: "Funded a successful archaeological expedition.",
+                goldChange: 400,
+                statChanges: {
+                  reputation: 10
+                }
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "The expedition gets lost in the shifting sands and collapses, wasting your gold.",
+                logText: "Funded an expedition that was lost.",
+                goldChange: -150
+              }
+            }
+          ]
+        },
+        {
+          text: "Ignore it",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You stay safe at home.",
+                logText: "Decided to ignore the ruins.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "foreign_visitor",
+      title: "Foreign Visitor",
+      text: {
+        default: "A traveler from distant lands arrives in town seeking assistance with translation and navigation."
+      },
+      weight: 9,
+      requirements: {
+        minAge: 16
+      },
+      choices: [
+        {
+          text: "Help them willingly",
+          moralityShift: 6,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You guide the traveler safely. They thank you and spread positive stories about your kindness.",
+                logText: "Helped a foreign visitor navigate.",
+                statChanges: {
+                  reputation: 10,
+                  happiness: 5
+                },
+                addTraits: ["Kind"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Trade with them",
+          outcomes: [
+            {
+              chance: 70,
+              outcome: {
+                text: "You exchange local crafts for their exotic foreign products, turning a tidy profit.",
+                logText: "Traded exotic goods with a foreign visitor.",
+                goldChange: 150,
+                statChanges: {
+                  reputation: 5
+                }
+              }
+            },
+            {
+              chance: 30,
+              outcome: {
+                text: "You get out-negotiated and end up with defective goods.",
+                logText: "Made a poor trade with a foreign visitor.",
+                goldChange: -50
+              }
+            }
+          ]
+        },
+        {
+          text: "Exploit their ignorance",
+          moralityShift: -12,
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You overcharge them for basic items, swindling them out of their wealth.",
+                logText: "Swindled a foreign visitor.",
+                goldChange: 200,
+                statChanges: {
+                  reputation: -15
+                },
+                addTraits: ["Greedy"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "apprentice_offer",
+      title: "Apprentice Offer",
+      text: {
+        default: "A veteran in your field offers to mentor you.",
+        farmer: "A master farmer offers to teach you advanced crop rotation.",
+        merchant: "The Trade Guild invites you to sit on their local council.",
+        noble: "A veteran counselor offers to tutor you in courtly intrigue.",
+        royal: "An elder statesman offers to tutor you in courtly intrigue."
+      },
+      weight: 9,
+      requirements: {
+        minAge: 18
+      },
+      choices: [
+        {
+          text: "Accept mentoring",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You learn advanced tactics and build your professional skills.",
+                logText: "Accepted advanced mentorship.",
+                statChanges: {
+                  intelligence: 10,
+                  reputation: 8
+                },
+                addTraits: ["Responsible"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Decline",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You decline, preferring to chart your own course.",
+                logText: "Declined mentorship.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "once_in_a_lifetime",
+      title: "Once-In-A-Lifetime Deal",
+      text: {
+        default: "A high-stakes, unique investment opportunity appears that could secure your dynasty's future."
+      },
+      weight: 4,
+      requirements: {
+        minAge: 25
+      },
+      choices: [
+        {
+          text: "Risk everything (Cost: 300 G)",
+          requirements: {
+            minGold: 300
+          },
+          outcomes: [
+            {
+              chance: 50,
+              outcome: {
+                text: "JACKPOT! The high-risk venture succeeds beyond your wildest dreams!",
+                logText: "Staked a massive investment and won a jackpot.",
+                goldChange: 1000,
+                statChanges: {
+                  reputation: 25
+                },
+                addTraits: ["Ambitious"]
+              }
+            },
+            {
+              chance: 50,
+              outcome: {
+                text: "Disaster! The venture collapses entirely, wiping out your investment.",
+                logText: "Staked a massive investment and lost everything.",
+                goldChange: -300,
+                statChanges: {
+                  reputation: -20
+                },
+                addTraits: ["Rebellious"]
+              }
+            }
+          ]
+        },
+        {
+          text: "Make a cautious investment (Cost: 100 G)",
+          requirements: {
+            minGold: 100
+          },
+          outcomes: [
+            {
+              chance: 80,
+              outcome: {
+                text: "The cautious venture yields a respectable profit.",
+                logText: "Made a cautious investment and gained moderate returns.",
+                goldChange: 200,
+                statChanges: {
+                  reputation: 5
+                },
+                addTraits: ["Cautious"]
+              }
+            },
+            {
+              chance: 20,
+              outcome: {
+                text: "The cautious venture still fails, costing you your investment.",
+                logText: "Made a cautious investment that failed.",
+                goldChange: -100
+              }
+            }
+          ]
+        },
+        {
+          text: "Walk away",
+          outcomes: [
+            {
+              chance: 100,
+              outcome: {
+                text: "You decide the risk is too great and refuse to play.",
+                logText: "Walked away from a high-stakes investment opportunity.",
+                addTraits: ["Cautious"]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   startingBackgrounds: [
