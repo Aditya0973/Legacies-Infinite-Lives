@@ -90,6 +90,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveSlotId(savedSlot);
   }, []);
 
+  // Handle background music playback based on active expansion and play state
+  useEffect(() => {
+    if (isPlaying && activeExpansion && soundEnabled) {
+      gameAudio.startMusic(activeExpansion.id);
+    } else {
+      gameAudio.stopMusic();
+    }
+    return () => {
+      gameAudio.stopMusic();
+    };
+  }, [isPlaying, activeExpansion?.id, soundEnabled]);
+
   const selectExpansion = (id: string) => {
     const exp = getExpansion(id);
     setActiveExpansion(exp);
@@ -117,14 +129,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const rollStats = (): Record<StatName, number> => {
-    const roll = () => Math.floor(Math.random() * 45) + 35; // 35 to 80
+    const rollSkill = () => Math.floor(Math.random() * 30) + 25; // 25 to 55 for skills
+    const rollVital = () => Math.floor(Math.random() * 15) + 80; // 80 to 95 for vitals
     return {
-      health: roll(),
-      happiness: roll(),
-      intelligence: roll(),
-      charisma: roll(),
-      strength: roll(),
-      reputation: 50 // starts balanced at 50 (middle of Honor <-> Infamy scale)
+      health: rollVital(),
+      happiness: rollVital(),
+      intelligence: rollSkill(),
+      charisma: rollSkill(),
+      strength: rollSkill(),
+      reputation: 50
     };
   };
 
@@ -142,14 +155,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // 2. Roll base attributes (35 to 55) and apply background modifiers
-    const baseRoll = () => Math.floor(Math.random() * 20) + 35;
+    // 2. Roll base attributes and apply background modifiers
+    const baseRollSkill = () => Math.floor(Math.random() * 20) + 30; // 30 to 50 base for skills
+    const baseRollVital = () => Math.floor(Math.random() * 15) + 80; // 80 to 95 base for health
     const stats: Record<StatName, number> = {
-      health: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.health || 0))),
-      happiness: 50,
-      intelligence: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.intelligence || 0))),
-      charisma: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.charisma || 0))),
-      strength: Math.max(5, Math.min(100, baseRoll() + (selectedBg.statModifiers.strength || 0))),
+      health: Math.max(20, Math.min(100, baseRollVital() + (selectedBg.statModifiers.health || 0))),
+      happiness: 80,
+      intelligence: Math.max(5, Math.min(100, baseRollSkill() + (selectedBg.statModifiers.intelligence || 0))),
+      charisma: Math.max(5, Math.min(100, baseRollSkill() + (selectedBg.statModifiers.charisma || 0))),
+      strength: Math.max(5, Math.min(100, baseRollSkill() + (selectedBg.statModifiers.strength || 0))),
       reputation: Math.max(5, Math.min(100, 50 + (selectedBg.statModifiers.reputation || 0)))
     };
 
@@ -274,6 +288,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const workHard = () => {
     if (!character || !character.career) return;
+    if (character.yearlyActions?.workedHard) {
+      gameAudio.playFail();
+      return;
+    }
     
     setCharacter(prev => {
       if (!prev || !prev.career) return null;
@@ -292,7 +310,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ...prev.career,
           performance: newPerf
         },
-        journal: [...prev.journal, `Worked hard at your job as a ${prev.career.title}. Performance increased.`]
+        journal: [...prev.journal, `Worked hard at your job as a ${prev.career.title}. Performance increased.`],
+        yearlyActions: {
+          interactedRelations: prev.yearlyActions?.interactedRelations || [],
+          activitiesPerformed: prev.yearlyActions?.activitiesPerformed || [],
+          workedHard: true
+        }
       };
     });
     gameAudio.playClick();
@@ -704,7 +727,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } else {
       // Chance to trigger a new world event
-      if (Math.random() < 0.08 && activeExpansion.worldEvents.length > 0) {
+      if (Math.random() < 0.03 && activeExpansion.worldEvents.length > 0) {
         const evTemplate = activeExpansion.worldEvents[Math.floor(Math.random() * activeExpansion.worldEvents.length)];
         activeWorldEvent = {
           ...evTemplate,

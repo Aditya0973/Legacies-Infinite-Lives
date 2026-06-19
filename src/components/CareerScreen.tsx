@@ -116,12 +116,17 @@ export const CareerScreen: React.FC<CareerScreenProps> = ({ onBack }) => {
           {/* Vocation Controls */}
           <div className="grid grid-cols-2 gap-3">
             <button
+              disabled={character.yearlyActions?.workedHard}
               onClick={workHard}
-              className="py-4 bg-primary hover:bg-primary-hover text-white rounded-xl text-base font-bold shadow-md flex items-center justify-center gap-2 cursor-pointer interactive-btn uppercase tracking-wider"
+              className={`py-4 rounded-xl text-base font-bold shadow-md flex items-center justify-center gap-2 uppercase tracking-wider ${
+                character.yearlyActions?.workedHard
+                  ? 'bg-black/10 text-text-sub border border-card-border cursor-not-allowed opacity-60'
+                  : 'bg-primary hover:bg-primary-hover text-white cursor-pointer interactive-btn'
+              }`}
               style={{ borderRadius: activeExpansion.theme.borderRadius }}
             >
               <TrendingUp size={16} />
-              <span>Work Hard</span>
+              <span>{character.yearlyActions?.workedHard ? 'Worked' : 'Work Hard'}</span>
             </button>
 
             <button

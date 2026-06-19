@@ -134,6 +134,7 @@ export interface Character {
   yearlyActions?: {
     interactedRelations: string[];
     activitiesPerformed: string[];
+    workedHard?: boolean;
   };
 }
 

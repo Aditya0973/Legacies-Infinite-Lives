@@ -1,6 +1,9 @@
 class SoundSystem {
   private ctx: AudioContext | null = null;
   private enabled: boolean = true;
+  private musicInterval: any = null;
+  private currentTheme: string | null = null;
+  private filterNode: BiquadFilterNode | null = null;
 
   private init() {
     if (!this.ctx) {
@@ -17,6 +20,11 @@ class SoundSystem {
 
   public setEnabled(val: boolean) {
     this.enabled = val;
+    if (!val) {
+      this.stopMusic();
+    } else if (this.currentTheme) {
+      this.startMusic(this.currentTheme);
+    }
   }
 
   public isEnabled(): boolean {
@@ -154,6 +162,125 @@ class SoundSystem {
       osc.start(now);
       osc.stop(now + 1.9);
     });
+  }
+
+  public startMusic(theme: string) {
+    this.currentTheme = theme;
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    if (this.musicInterval) {
+      clearInterval(this.musicInterval);
+    }
+
+    // Set up filter for lofi warm feeling
+    if (!this.filterNode) {
+      this.filterNode = this.ctx.createBiquadFilter();
+      this.filterNode.type = 'lowpass';
+      this.filterNode.frequency.setValueAtTime(800, this.ctx.currentTime); // warm low-pass cut
+      this.filterNode.connect(this.ctx.destination);
+    }
+
+    let step = 0;
+    
+    // Notes frequencies (D minor -> C major -> F major -> A minor)
+    const arpeggios = [
+      // D minor
+      146.83, 174.61, 220.00, 293.66,
+      // C major
+      130.81, 164.81, 196.00, 261.63,
+      // F major
+      174.61, 220.00, 261.63, 349.23,
+      // A minor
+      110.00, 130.81, 164.81, 220.00
+    ];
+
+    const tempo = 450; // ms per note
+
+    this.musicInterval = setInterval(() => {
+      if (!this.ctx || !this.enabled) return;
+      if (this.ctx.state === 'suspended') return;
+
+      const now = this.ctx.currentTime;
+
+      // 1. Play lute/harp note (triangle wave with exponential decay)
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      if (this.filterNode) {
+        gain.connect(this.filterNode);
+      } else {
+        gain.connect(this.ctx.destination);
+      }
+
+      osc.type = 'triangle';
+      // Add subtle pitch variation for detuned lofi vibe
+      const pitchDetune = (Math.random() - 0.5) * 8; // detune in cents
+      osc.frequency.setValueAtTime(arpeggios[step % arpeggios.length], now);
+      osc.detune.setValueAtTime(pitchDetune, now);
+
+      gain.gain.setValueAtTime(0.015, now); // soft volume
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2); // long ring
+
+      osc.start(now);
+      osc.stop(now + 1.3);
+
+      // 2. Play soft lofi hip-hop beat (soft kick on steps 0, 4, 8, 12)
+      if (step % 4 === 0) {
+        const kickOsc = this.ctx.createOscillator();
+        const kickGain = this.ctx.createGain();
+        kickOsc.connect(kickGain);
+        kickGain.connect(this.ctx.destination);
+
+        kickOsc.frequency.setValueAtTime(80, now);
+        kickOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.15); // pitch slide down for thump
+
+        kickGain.gain.setValueAtTime(0.04, now);
+        kickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+        kickOsc.start(now);
+        kickOsc.stop(now + 0.16);
+      }
+
+      // 3. Play soft shaker / brush snare on steps 2, 6, 10, 14
+      if (step % 4 === 2) {
+        // Generate a tiny white noise burst for snare
+        const bufferSize = this.ctx.sampleRate * 0.05; // 50ms burst
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noiseNode = this.ctx.createBufferSource();
+        noiseNode.buffer = buffer;
+
+        const noiseFilter = this.ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(1000, now);
+
+        const noiseGain = this.ctx.createGain();
+        noiseNode.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+
+        noiseGain.gain.setValueAtTime(0.006, now); // extremely soft brush snare
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+
+        noiseNode.start(now);
+        noiseNode.stop(now + 0.05);
+      }
+
+      step++;
+    }, tempo);
+  }
+
+  public stopMusic() {
+    if (this.musicInterval) {
+      clearInterval(this.musicInterval);
+      this.musicInterval = null;
+    }
   }
 }
 

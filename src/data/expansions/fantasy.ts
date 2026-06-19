@@ -858,6 +858,9 @@ export const fantasyExpansion: Expansion = {
               outcome: {
                 text: "You develop a meaningful friendship.",
                 logText: "Formed a promising new friendship.",
+                relationshipChange: {
+                  type: "friend"
+                },
                 statChanges: {
                   happiness: 10,
                   charisma: 3
@@ -1272,6 +1275,9 @@ export const fantasyExpansion: Expansion = {
               outcome: {
                 text: "A lasting friendship begins.",
                 logText: "Made your first close friend.",
+                relationshipChange: {
+                  type: "friend"
+                },
                 statChanges: {
                   happiness: 8,
                   charisma: 2
@@ -2263,7 +2269,7 @@ export const fantasyExpansion: Expansion = {
       },
       choices: [
         {
-          text: "Invest in the deal (Cost: 100 G)",
+          text: "Invest in the deal",
           requirements: {
             minGold: 100
           },
@@ -2386,7 +2392,7 @@ export const fantasyExpansion: Expansion = {
           ]
         },
         {
-          text: "Hire help (Cost: 80 G)",
+          text: "Hire help",
           requirements: {
             minGold: 80
           },
@@ -2509,7 +2515,7 @@ export const fantasyExpansion: Expansion = {
       },
       choices: [
         {
-          text: "Pay for the secret (Cost: 120 G)",
+          text: "Pay for the secret",
           requirements: {
             minGold: 120
           },
@@ -2569,7 +2575,7 @@ export const fantasyExpansion: Expansion = {
       },
       choices: [
         {
-          text: "Seize the opportunity (Cost: 100 G)",
+          text: "Seize the opportunity",
           requirements: {
             minGold: 100
           },
@@ -2655,7 +2661,7 @@ export const fantasyExpansion: Expansion = {
           ]
         },
         {
-          text: "Train and prepare (Cost: 40 G)",
+          text: "Train and prepare",
           requirements: {
             minGold: 40
           },
@@ -2738,7 +2744,7 @@ export const fantasyExpansion: Expansion = {
           ]
         },
         {
-          text: "Fund an expedition (Cost: 150 G)",
+          text: "Fund an expedition",
           requirements: {
             minGold: 150
           },
@@ -2911,7 +2917,7 @@ export const fantasyExpansion: Expansion = {
       },
       choices: [
         {
-          text: "Risk everything (Cost: 300 G)",
+          text: "Risk everything",
           requirements: {
             minGold: 300
           },
@@ -2943,7 +2949,7 @@ export const fantasyExpansion: Expansion = {
           ]
         },
         {
-          text: "Make a cautious investment (Cost: 100 G)",
+          text: "Make a cautious investment",
           requirements: {
             minGold: 100
           },
@@ -3056,7 +3062,7 @@ export const fantasyExpansion: Expansion = {
           ]
         },
         {
-          text: "Pay them off (Cost: 100 G)",
+          text: "Pay them off",
           requirements: {
             minGold: 100
           },
@@ -3092,7 +3098,7 @@ export const fantasyExpansion: Expansion = {
       },
       choices: [
         {
-          text: "Invest savings to recover (Cost: 100 G)",
+          text: "Invest savings to recover",
           requirements: {
             minGold: 100
           },
@@ -3170,7 +3176,7 @@ export const fantasyExpansion: Expansion = {
       },
       choices: [
         {
-          text: "Seek premium apothecary care (Cost: 150 G)",
+          text: "Seek premium apothecary care",
           requirements: {
             minGold: 150
           },
@@ -3540,7 +3546,7 @@ export const fantasyExpansion: Expansion = {
           ]
         },
         {
-          text: "Bribe the court officials (Cost: 100 G)",
+          text: "Bribe the court officials",
           requirements: {
             minGold: 100
           },
@@ -3595,7 +3601,7 @@ export const fantasyExpansion: Expansion = {
       },
       choices: [
         {
-          text: "Invest in cheap assets (Cost: 150 G)",
+          text: "Invest in cheap assets",
           requirements: {
             minGold: 150
           },
@@ -3734,7 +3740,7 @@ export const fantasyExpansion: Expansion = {
           ]
         },
         {
-          text: "Bribe the assassin (Cost: 200 G)",
+          text: "Bribe the assassin",
           requirements: {
             minGold: 200
           },
