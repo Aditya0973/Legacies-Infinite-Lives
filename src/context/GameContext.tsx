@@ -40,6 +40,7 @@ interface GameContextType {
   applyForJob: (career: Career) => boolean;
   workHard: () => void;
   resignJob: () => void;
+  askForPromotion: () => boolean;
   buyItem: (item: Omit<InventoryItem, 'id'>) => boolean;
   performActivity: (activityId: string) => void;
   selectHeirAndContinue: (childId: string) => void;
@@ -335,11 +336,96 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     gameAudio.playClick();
   };
 
+  const askForPromotion = (): boolean => {
+    if (!character || character.isDead || !character.career) return false;
+    
+    const nextCareer = activeExpansion.careers.find(c => c.requirements.requiredCareerId === character.career?.id);
+    if (!nextCareer) {
+      setCharacter(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          journal: [...prev.journal, "You requested a promotion, but you are already at the peak of your career track!"]
+        };
+      });
+      gameAudio.playFail();
+      return false;
+    }
+
+    if (character.career.performance < 80) {
+      setCharacter(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          journal: [...prev.journal, `Asked for a promotion, but your supervisor refused: "Your performance (${prev.career?.performance}%) is not high enough. We expect at least 80%."`]
+        };
+      });
+      gameAudio.playFail();
+      return false;
+    }
+
+    const failedStats: string[] = [];
+    if (nextCareer.requirements.minStats) {
+      for (const [stat, val] of Object.entries(nextCareer.requirements.minStats)) {
+        if (character.stats[stat as StatName] < (val || 0)) {
+          const label = activeExpansion.statLabels[stat as StatName] || stat;
+          failedStats.push(label);
+        }
+      }
+    }
+
+    if (failedStats.length > 0) {
+      setCharacter(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          journal: [...prev.journal, `Asked for a promotion, but you were rejected. They feel you lack the necessary qualifications: (${failedStats.join(', ')}).`]
+        };
+      });
+      gameAudio.playFail();
+      return false;
+    }
+
+    setCharacter(prev => {
+      if (!prev) return null;
+      const promoted = {
+        id: nextCareer.id,
+        title: nextCareer.title,
+        salary: nextCareer.salary,
+        performance: 40
+      };
+      return {
+        ...prev,
+        career: promoted,
+        journal: [...prev.journal, `🎉 Promoted to ${nextCareer.title}! Your new salary is ${nextCareer.salary} Gold.` ]
+      };
+    });
+
+    gameAudio.playLevelUp();
+    return true;
+  };
+
   const buyItem = (itemTemplate: Omit<InventoryItem, 'id'>): boolean => {
     if (!character || character.isDead) return false;
     if (character.gold < itemTemplate.cost) {
       gameAudio.playFail();
       return false;
+    }
+
+    if (itemTemplate.type === 'property') {
+      const count = character.inventory.filter(i => i.type === 'property').length;
+      if (count >= 3) {
+        gameAudio.playFail();
+        return false;
+      }
+    }
+
+    if (itemTemplate.type === 'business') {
+      const count = character.inventory.filter(i => i.type === 'business').length;
+      if (count >= 2) {
+        gameAudio.playFail();
+        return false;
+      }
     }
 
     const newItem: InventoryItem = {
@@ -395,6 +481,116 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    // Special Activity: Dungeon Delve (Triggers custom interactive Event Modal)
+    if (activityId === 'dungeon_raid') {
+      // 1. Charge the initial entrance cost
+      setCharacter(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          gold: prev.gold - activity.cost,
+          yearlyActions: {
+            interactedRelations: prev.yearlyActions?.interactedRelations || [],
+            activitiesPerformed: [...(prev.yearlyActions?.activitiesPerformed || []), activityId]
+          }
+        };
+      });
+
+      const companions = character.relationships.filter(
+        r => r.status === 'alive' && (r.type === 'friend' || r.type === 'sibling' || r.type === 'spouse')
+      );
+
+      const choices: Choice[] = [
+        {
+          text: "Delve alone (Keep all loot, high risk)",
+          outcomes: [
+            {
+              chance: 55,
+              outcome: {
+                text: "You successfully disarmed the traps and routed the skeleton guardians, emerging with a heavy treasure sack!",
+                logText: "Successfully raided the Whispering Crypts alone.",
+                goldChange: 220,
+                statChanges: { health: -10, happiness: 20 },
+                addTraits: ["Brave"]
+              }
+            },
+            {
+              chance: 45,
+              outcome: {
+                text: "You tripped a poison dart plate and were ambushed by monsters. You barely escaped with your life!",
+                logText: "Failed a dungeon delve and got injured.",
+                goldChange: 0,
+                statChanges: { health: -35, happiness: -15 }
+              }
+            }
+          ]
+        }
+      ];
+
+      if (companions.length > 0) {
+        const comp = companions[Math.floor(Math.random() * companions.length)];
+        choices.push({
+          text: `Delve with your ${comp.type} ${comp.name} (Share loot, lower risk)`,
+          outcomes: [
+            {
+              chance: 75,
+              outcome: {
+                text: `With ${comp.name} watching your back, you bypass the traps easily and split a massive treasure chest!`,
+                logText: `Raided the Whispering Crypts with ${comp.name}.`,
+                goldChange: 110,
+                statChanges: { happiness: 15 },
+                relationshipChange: {
+                  type: 'modify',
+                  relationId: comp.id,
+                  amount: 15
+                }
+              }
+            },
+            {
+              chance: 25,
+              outcome: {
+                text: `An ancient stone trap collapsed! You tried to pull ${comp.name} back, but they were crushed under the rubble. You fled in horror.`,
+                logText: `${comp.name} died in the Whispering Crypts.`,
+                goldChange: 0,
+                statChanges: { happiness: -40 },
+                relationshipChange: {
+                  type: 'modify',
+                  relationId: comp.id,
+                  status: 'dead'
+                }
+              }
+            }
+          ]
+        });
+      }
+
+      choices.push({
+        text: "Turn back at the gates",
+        outcomes: [
+          {
+            chance: 100,
+            outcome: {
+              text: "You decide the risk is too great and leave the crypts, retrieving your supplies.",
+              logText: "Turned back from the Whispering Crypts.",
+              goldChange: activity.cost // refund cost
+            }
+          }
+        ]
+      });
+
+      const dungeonEvent: GameEvent = {
+        id: 'activity_dungeon_raid_event',
+        title: 'The Whispering Crypts',
+        text: 'You stand at the mouth of the ancient tomb. A chilly wind blows from within, smelling of decay and old gold.',
+        weight: 0,
+        choices
+      };
+
+      setCurrentEvent(dungeonEvent);
+      gameAudio.playClick();
+      return;
+    }
+
     setCharacter(prev => {
       if (!prev) return null;
 
@@ -403,6 +599,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let logs = [...prev.journal];
       let relationships = [...prev.relationships];
       let currentGold = prev.gold - goldCost;
+      let traits = [...prev.traits];
 
       if (activity.id === 'study_arcane' || activity.id === 'study_charts') {
         newStats.intelligence = Math.min(100, newStats.intelligence + 10);
@@ -510,6 +707,59 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           gameAudio.playClick();
         }
       }
+      else if (activity.id === 'coliseum_fight') {
+        const success = Math.random() > 0.45;
+        if (success) {
+          const reward = Math.floor(Math.random() * 80) + 40;
+          currentGold += reward;
+          newStats.reputation = Math.min(100, newStats.reputation + 8);
+          newStats.strength = Math.min(100, newStats.strength + 10);
+          newStats.happiness = Math.min(100, newStats.happiness + 15);
+          logs.push(`Victorious in the Coliseum! You defeated your opponent and won ${reward} Gold and the crowd's cheers.`);
+          gameAudio.playMoney();
+        } else {
+          newStats.health = Math.max(5, newStats.health - 30);
+          newStats.happiness = Math.max(0, newStats.happiness - 10);
+          newStats.reputation = Math.max(0, newStats.reputation - 5);
+          logs.push(`Defeated in the Coliseum! You were carried out of the arena, beaten and humiliated.`);
+          gameAudio.playFail();
+        }
+      }
+      else if (activity.id === 'pilgrimage') {
+        newStats.reputation = Math.min(100, newStats.reputation + 15);
+        newStats.happiness = Math.min(100, newStats.happiness + 8);
+        newStats.intelligence = Math.min(100, newStats.intelligence + 5);
+        
+        let gainedTrait = '';
+        if (Math.random() > 0.6 && !traits.includes('Kind')) {
+          gainedTrait = 'Kind';
+        } else if (Math.random() > 0.6 && !traits.includes('Cautious')) {
+          gainedTrait = 'Cautious';
+        }
+        
+        let traitLog = '';
+        if (gainedTrait) {
+          traits = [...traits.filter(t => t !== gainedTrait), gainedTrait];
+          traitLog = ` You gained the ${gainedTrait} trait.`;
+        }
+        logs.push(`Completed a holy pilgrimage to the mountain shrine. You feel spiritually cleansed.${traitLog}`);
+        gameAudio.playLevelUp();
+      }
+      else if (activity.id === 'tavern_brawl') {
+        const win = Math.random() > 0.5;
+        newStats.strength = Math.min(100, newStats.strength + 8);
+        if (win) {
+          newStats.happiness = Math.min(100, newStats.happiness + 10);
+          newStats.reputation = Math.max(0, newStats.reputation - 5);
+          logs.push(`You won a rowdy brawl in the tavern, leaving the other guy knocked out cold.`);
+          gameAudio.playClick();
+        } else {
+          newStats.health = Math.max(1, newStats.health - 20);
+          newStats.happiness = Math.max(0, newStats.happiness - 10);
+          logs.push(`You got beaten up in the tavern brawl. Ouch.`);
+          gameAudio.playFail();
+        }
+      }
 
       return {
         ...prev,
@@ -517,6 +767,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stats: newStats,
         relationships,
         journal: logs,
+        traits,
         yearlyActions: {
           interactedRelations: prev.yearlyActions?.interactedRelations || [],
           activitiesPerformed: [...(prev.yearlyActions?.activitiesPerformed || []), activityId]
@@ -654,6 +905,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logs.push(`Investments yielded a net profit of ${netAssetFlow} Gold.`);
     } else if (netAssetFlow < 0) {
       logs.push(`Paid ${Math.abs(netAssetFlow)} Gold in maintenance and taxes for assets.`);
+    }
+
+    // 2.5 Cost of Living / Taxes based on age and family class
+    if (currentAge >= 14) {
+      let costOfLiving = 5; // default peasant
+      if (character.familyBackgroundId === 'blacksmith') costOfLiving = 10;
+      if (character.familyBackgroundId === 'merchant') costOfLiving = 20;
+      if (character.familyBackgroundId === 'noble') costOfLiving = 45;
+      if (character.familyBackgroundId === 'royal') costOfLiving = 90;
+      
+      newGold -= costOfLiving;
+      logs.push(`Paid ${costOfLiving} Gold for food, housing, and basic taxes.`);
     }
 
     // Ensure gold doesn't go below 0 (accrue debt)
@@ -960,7 +1223,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const rc = selectedOutcome.relationshipChange;
         if (rc.type === 'spouse' || rc.type === 'child' || rc.type === 'friend' || rc.type === 'sibling') {
           const generatedName = generateRandomName('non-binary', activeExpansion);
-          const name = rc.name || `${generatedName.first} ${prev.dynastyName}`;
+          let surname = prev.dynastyName;
+          if (rc.type === 'friend' || rc.type === 'spouse') {
+            surname = activeExpansion.names.last[Math.floor(Math.random() * activeExpansion.names.last.length)];
+          }
+          const name = rc.name || `${generatedName.first} ${surname}`;
           
           let age = prev.age + Math.floor(Math.random() * 5) - 2;
           if (rc.type === 'child') {
@@ -991,7 +1258,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           relationships = relationships.map(r => {
             if (r.id === targetId || (targetId === 'spouse' && r.type === 'spouse')) { 
-              return { ...r, relationship: Math.max(0, Math.min(100, r.relationship + (rc.amount || 0))) };
+              const nextStatus = rc.status || r.status;
+              const nextRel = rc.amount !== undefined ? Math.max(0, Math.min(100, r.relationship + rc.amount)) : r.relationship;
+              return { ...r, relationship: nextRel, status: nextStatus };
             }
             return r;
           });
@@ -1274,6 +1543,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       applyForJob,
       workHard,
       resignJob,
+      askForPromotion,
       buyItem,
       performActivity,
       selectHeirAndContinue,

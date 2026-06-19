@@ -8,7 +8,7 @@ interface CareerScreenProps {
 }
 
 export const CareerScreen: React.FC<CareerScreenProps> = ({ onBack }) => {
-  const { character, activeExpansion, applyForJob, workHard, resignJob } = useGame();
+  const { character, activeExpansion, applyForJob, workHard, resignJob, askForPromotion } = useGame();
 
   if (!character) return null;
 
@@ -114,11 +114,11 @@ export const CareerScreen: React.FC<CareerScreenProps> = ({ onBack }) => {
           </div>
 
           {/* Vocation Controls */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             <button
               disabled={character.yearlyActions?.workedHard}
               onClick={workHard}
-              className={`py-4 rounded-xl text-base font-bold shadow-md flex items-center justify-center gap-2 uppercase tracking-wider ${
+              className={`w-full py-4 rounded-xl text-base font-bold shadow-md flex items-center justify-center gap-2 uppercase tracking-wider ${
                 character.yearlyActions?.workedHard
                   ? 'bg-black/10 text-text-sub border border-card-border cursor-not-allowed opacity-60'
                   : 'bg-primary hover:bg-primary-hover text-white cursor-pointer interactive-btn'
@@ -129,14 +129,25 @@ export const CareerScreen: React.FC<CareerScreenProps> = ({ onBack }) => {
               <span>{character.yearlyActions?.workedHard ? 'Worked' : 'Work Hard'}</span>
             </button>
 
-            <button
-              onClick={resignJob}
-              className="py-4 bg-card-bg hover:bg-rose-500/5 text-text-main hover:text-text-heading rounded-xl text-base font-bold border border-card-border hover:border-rose-500/30 flex items-center justify-center gap-2 cursor-pointer interactive-btn uppercase tracking-wider"
-              style={{ borderRadius: activeExpansion.theme.borderRadius }}
-            >
-              <XCircle size={16} className="text-rose-500" />
-              <span>Resign</span>
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={askForPromotion}
+                className="py-4 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-base font-bold border border-primary/30 flex items-center justify-center gap-2 cursor-pointer interactive-btn uppercase tracking-wider"
+                style={{ borderRadius: activeExpansion.theme.borderRadius }}
+              >
+                <TrendingUp size={16} />
+                <span>Promote</span>
+              </button>
+
+              <button
+                onClick={resignJob}
+                className="py-4 bg-card-bg hover:bg-rose-500/5 text-text-main hover:text-text-heading rounded-xl text-base font-bold border border-card-border hover:border-rose-500/30 flex items-center justify-center gap-2 cursor-pointer interactive-btn uppercase tracking-wider"
+                style={{ borderRadius: activeExpansion.theme.borderRadius }}
+              >
+                <XCircle size={16} className="text-rose-500" />
+                <span>Resign</span>
+              </button>
+            </div>
           </div>
         </div>
       ) : (

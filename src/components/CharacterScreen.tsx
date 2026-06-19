@@ -55,7 +55,7 @@ export const CharacterScreen: React.FC = () => {
 
   return (
     <div 
-      className="flex-1 flex flex-col justify-between w-full max-w-md mx-auto px-3.5 pt-3 pb-3 h-full max-h-full select-none overflow-hidden"
+      className="flex-1 flex flex-col justify-between w-full max-w-md mx-auto px-3.5 pt-3 pb-3 h-full max-h-full md:max-h-[820px] md:h-[820px] md:my-auto md:shadow-2xl md:border md:border-panel-border md:rounded-2xl select-none overflow-hidden"
       style={{
         '--primary': activeExpansion.theme.primary,
         '--primary-hover': activeExpansion.theme.primaryHover,

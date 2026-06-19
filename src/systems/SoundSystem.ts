@@ -1,9 +1,13 @@
+// @ts-ignore
+import fantasyRealmsMusic from '../assets/fantasy realms.mp3';
+
 class SoundSystem {
   private ctx: AudioContext | null = null;
   private enabled: boolean = true;
   private musicInterval: any = null;
   private currentTheme: string | null = null;
   private filterNode: BiquadFilterNode | null = null;
+  private audioEl: HTMLAudioElement | null = null;
 
   private init() {
     if (!this.ctx) {
@@ -167,6 +171,22 @@ class SoundSystem {
   public startMusic(theme: string) {
     this.currentTheme = theme;
     if (!this.enabled) return;
+    this.stopMusic();
+
+    if (theme === 'fantasy') {
+      try {
+        this.audioEl = new Audio(fantasyRealmsMusic);
+        this.audioEl.loop = true;
+        this.audioEl.volume = 0.20; // soft volume
+        this.audioEl.play().catch(err => {
+          console.warn("Audio play blocked by browser. Will play after user interaction:", err);
+        });
+      } catch (e) {
+        console.error("Failed to start audio element:", e);
+      }
+      return;
+    }
+
     this.init();
     if (!this.ctx) return;
 
@@ -280,6 +300,14 @@ class SoundSystem {
     if (this.musicInterval) {
       clearInterval(this.musicInterval);
       this.musicInterval = null;
+    }
+    if (this.audioEl) {
+      try {
+        this.audioEl.pause();
+      } catch (e) {
+        console.warn("Failed to pause HTML5 audio:", e);
+      }
+      this.audioEl = null;
     }
   }
 }

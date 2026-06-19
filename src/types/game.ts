@@ -43,6 +43,7 @@ export interface EventOutcome {
     name?: string;
     amount?: number;
     relationId?: string; // used for updating existing relation
+    status?: 'alive' | 'dead';
   };
   careerChange?: {
     type: 'hire' | 'fire' | 'promote';

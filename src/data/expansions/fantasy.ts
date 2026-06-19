@@ -34,6 +34,7 @@ export const fantasyExpansion: Expansion = {
     reputation: 'Morality'
   },
   careers: [
+    // --- FARMER TRACK ---
     {
       id: 'farmer',
       title: 'Peasant Farmer',
@@ -42,12 +43,58 @@ export const fantasyExpansion: Expansion = {
       requirements: { minAge: 14 }
     },
     {
+      id: 'farmer_tenant',
+      title: 'Tenant Farmer',
+      salary: 25,
+      description: 'Rent a larger plot of land and manage crop rotations for better yields.',
+      requirements: { requiredCareerId: 'farmer', minStats: { strength: 40, health: 45 } }
+    },
+    {
+      id: 'farmer_overseer',
+      title: 'Estate Overseer',
+      salary: 55,
+      description: 'Supervise fields and peasant labors for a local landlord.',
+      requirements: { requiredCareerId: 'farmer_tenant', minStats: { strength: 50, health: 55, intelligence: 35 } }
+    },
+    {
+      id: 'farmer_bailiff',
+      title: 'Grand Bailiff',
+      salary: 120,
+      description: 'Manage the entire agricultural output and tax collections of a noble estate.',
+      requirements: { requiredCareerId: 'farmer_overseer', minStats: { strength: 55, health: 60, intelligence: 45, charisma: 35 } }
+    },
+
+    // --- BLACKSMITH TRACK ---
+    {
       id: 'blacksmith',
       title: 'Apprentice Blacksmith',
       salary: 28,
       description: 'Stoke the forge fires and hammer iron. Builds strength and yields reliable gold.',
       requirements: { minAge: 16, minStats: { strength: 35 } }
     },
+    {
+      id: 'blacksmith_journeyman',
+      title: 'Journeyman Blacksmith',
+      salary: 60,
+      description: 'Travel between villages refining your metalworking skills and creating quality tools.',
+      requirements: { requiredCareerId: 'blacksmith', minStats: { strength: 45, health: 40 } }
+    },
+    {
+      id: 'blacksmith_master',
+      title: 'Master Armourer',
+      salary: 130,
+      description: 'Forge custom steel plate and weapons for knights and lords.',
+      requirements: { requiredCareerId: 'blacksmith_journeyman', minStats: { strength: 60, health: 50, intelligence: 40 } }
+    },
+    {
+      id: 'blacksmith_royal',
+      title: 'Royal Blacksmith',
+      salary: 280,
+      description: 'Design and forge legendary weapons and crowns directly for the royal court.',
+      requirements: { requiredCareerId: 'blacksmith_master', minStats: { strength: 75, health: 60, intelligence: 50, charisma: 45 } }
+    },
+
+    // --- GUARD / MILITARY TRACK ---
     {
       id: 'guard',
       title: 'City Guard',
@@ -56,12 +103,58 @@ export const fantasyExpansion: Expansion = {
       requirements: { minAge: 18, minStats: { strength: 40, reputation: 50 } }
     },
     {
+      id: 'guard_sergeant',
+      title: 'Guard Sergeant',
+      salary: 85,
+      description: 'Command a squad of city guards and organize patrols during street riots.',
+      requirements: { requiredCareerId: 'guard', minStats: { strength: 50, reputation: 55, charisma: 35 } }
+    },
+    {
+      id: 'guard_warden',
+      title: 'Castle Warden',
+      salary: 170,
+      description: "Oversee the security, dungeons, and defenses of a lord's castle keep.",
+      requirements: { requiredCareerId: 'guard_sergeant', minStats: { strength: 60, reputation: 60, charisma: 45, intelligence: 40 } }
+    },
+    {
+      id: 'guard_commander',
+      title: 'Lord Commander',
+      salary: 380,
+      description: "Command the entire military and defensive forces of the kingdom's capital.",
+      requirements: { requiredCareerId: 'guard_warden', minStats: { strength: 70, reputation: 65, charisma: 55, intelligence: 50 } }
+    },
+
+    // --- SQUIRE / KNIGHT TRACK ---
+    {
+      id: 'squire',
+      title: 'Squire',
+      salary: 30,
+      description: 'Polish armor, groom horses, and learn the chivalric code under a master knight.',
+      requirements: { minAge: 14, minStats: { strength: 30, charisma: 30 } }
+    },
+    {
       id: 'knight',
       title: 'Chivalric Knight',
       salary: 110,
       description: 'Swear an oath of fealty to the Crown, fight in tournaments, and protect the weak.',
-      requirements: { minAge: 21, minStats: { strength: 60, charisma: 50 }, requiredCareerId: 'guard' }
+      requirements: { requiredCareerId: 'squire', minStats: { strength: 50, charisma: 45 } }
     },
+    {
+      id: 'knight_banneret',
+      title: 'Knight Banneret',
+      salary: 240,
+      description: 'Lead a company of squires and soldiers in battle under your own banner.',
+      requirements: { requiredCareerId: 'knight', minStats: { strength: 65, charisma: 55, reputation: 60 } }
+    },
+    {
+      id: 'knight_templar',
+      title: 'Grand Templar',
+      salary: 550,
+      description: 'Command a holy crusading order of knights, reporting only to the Pope or King.',
+      requirements: { requiredCareerId: 'knight_banneret', minStats: { strength: 75, charisma: 65, reputation: 70, intelligence: 50 } }
+    },
+
+    // --- MAGE TRACK ---
     {
       id: 'mage',
       title: 'Archmage Apprentice',
@@ -70,11 +163,85 @@ export const fantasyExpansion: Expansion = {
       requirements: { minAge: 18, minStats: { intelligence: 70 } }
     },
     {
+      id: 'mage_spellweaver',
+      title: 'Wizard Spellweaver',
+      salary: 320,
+      description: 'Synthesize runes and craft complex enchantments for military and household use.',
+      requirements: { requiredCareerId: 'mage', minStats: { intelligence: 75, charisma: 40 } }
+    },
+    {
+      id: 'mage_court',
+      title: 'Court Wizard',
+      salary: 650,
+      description: 'Provide magical advice, scrying services, and elemental wards for the royal family.',
+      requirements: { requiredCareerId: 'mage_spellweaver', minStats: { intelligence: 80, charisma: 55 } }
+    },
+    {
+      id: 'mage_high',
+      title: 'High Archmage',
+      salary: 1300,
+      description: 'Lead the Council of Mages, holding secrets of life and death, and guiding the empire.',
+      requirements: { requiredCareerId: 'mage_court', minStats: { intelligence: 90, charisma: 65, health: 50 } }
+    },
+
+    // --- SCRIBE / ADVISOR TRACK ---
+    {
+      id: 'scribe',
+      title: 'Royal Scribe',
+      salary: 80,
+      description: 'Transcribe royal decrees, file scroll taxes, and maintain the castle archives.',
+      requirements: { minAge: 16, minStats: { intelligence: 45 } }
+    },
+    {
       id: 'royal_advisor',
       title: 'Royal Advisor',
       salary: 320,
-      description: 'Whisper counsel into the King\'s ear. Requires immense intellect and cunning charm.',
-      requirements: { minAge: 30, minStats: { intelligence: 75, charisma: 70 } }
+      description: "Whisper counsel into the King's ear. Requires immense intellect and cunning charm.",
+      requirements: { requiredCareerId: 'scribe', minStats: { intelligence: 65, charisma: 55 } }
+    },
+    {
+      id: 'royal_chancellor',
+      title: 'Grand Chancellor',
+      salary: 720,
+      description: 'Administer the royal treasury, seal treaties, and manage foreign ambassadors.',
+      requirements: { requiredCareerId: 'royal_advisor', minStats: { intelligence: 75, charisma: 65, reputation: 50 } }
+    },
+    {
+      id: 'royal_hand',
+      title: 'Hand of the King',
+      salary: 1600,
+      description: "The absolute second-in-command of the realm, ruling from the Iron Throne in the King's absence.",
+      requirements: { requiredCareerId: 'royal_chancellor', minStats: { intelligence: 85, charisma: 75, reputation: 60 } }
+    },
+
+    // --- MERCHANT TRACK ---
+    {
+      id: 'peddler',
+      title: 'Street Peddler',
+      salary: 20,
+      description: 'Sell trinkets and spices in the local market square. Teaches basic trade and charisma.',
+      requirements: { minAge: 14 }
+    },
+    {
+      id: 'merchant_caravan',
+      title: 'Caravan Trader',
+      salary: 65,
+      description: 'Lead a pack horse through wilderness paths, trading goods across major towns.',
+      requirements: { requiredCareerId: 'peddler', minStats: { charisma: 40 } }
+    },
+    {
+      id: 'merchant_guild',
+      title: 'Guild Merchant',
+      salary: 180,
+      description: 'Establish trade routes, buy warehouses, and ship bulk luxury goods across the seas.',
+      requirements: { requiredCareerId: 'merchant_caravan', minStats: { charisma: 55, intelligence: 45 } }
+    },
+    {
+      id: 'trade_master',
+      title: 'Trade Master',
+      salary: 420,
+      description: 'Direct the local merchant guild, establishing monopoly routes and bulk shipping deals.',
+      requirements: { requiredCareerId: 'merchant_guild', minStats: { charisma: 70, intelligence: 60 } }
     }
   ],
   activities: [
@@ -119,6 +286,34 @@ export const fantasyExpansion: Expansion = {
       description: 'Dress in your finest attire and seek a partner of high status.',
       cost: 60,
       category: 'social'
+    },
+    {
+      id: 'dungeon_raid',
+      name: 'Raid a Crypt/Dungeon',
+      description: 'Delve into a dark tomb. Go alone (dangerous) or with a sibling/friend/spouse to share risk and loot.',
+      cost: 30,
+      category: 'health'
+    },
+    {
+      id: 'coliseum_fight',
+      name: 'Enter Coliseum Brawl',
+      description: 'Enter the city arena to fight gladiators. Might gain reputation, gold, and might, but carries health risks.',
+      cost: 10,
+      category: 'health'
+    },
+    {
+      id: 'pilgrimage',
+      name: 'Go on a Holy Pilgrimage',
+      description: 'Journey to a distant mountain shrine to pray. Boosts reputation/morality and traits.',
+      cost: 40,
+      category: 'study'
+    },
+    {
+      id: 'tavern_brawl',
+      name: 'Start a Tavern Brawl',
+      description: 'Pick a fight with a rowdy sailor. Builds might, but can cost health.',
+      cost: 0,
+      category: 'health'
     }
   ],
   itemPool: [

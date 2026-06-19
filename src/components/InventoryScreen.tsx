@@ -116,12 +116,19 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ onBack }) => {
       {subTab === 'shop' && (
         <div className="space-y-3">
           {activeExpansion.itemPool.map((item, idx) => {
+            const propertyCount = character.inventory.filter(i => i.type === 'property').length;
+            const businessCount = character.inventory.filter(i => i.type === 'business').length;
+            const isPropertyLimit = item.type === 'property' && propertyCount >= 3;
+            const isBusinessLimit = item.type === 'business' && businessCount >= 2;
+            const limitReached = isPropertyLimit || isBusinessLimit;
             const affordable = character.gold >= item.cost;
+            const canAcquire = affordable && !limitReached;
+
             return (
               <div 
                 key={idx}
                 className={`border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200 ${
-                  affordable 
+                  canAcquire 
                     ? 'bg-card-bg border-card-border hover:border-primary/50' 
                     : 'bg-black/5 border-card-border opacity-50'
                 }`}
@@ -132,7 +139,7 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ onBack }) => {
                     {getItemIcon(item.type)}
                     <h5 className="font-bold text-base text-text-heading">{item.name}</h5>
                     <span className="text-[9px] font-bold text-primary uppercase tracking-wide bg-primary/10 px-1.5 py-0.5 border border-primary/20 capitalize font-sans" style={{ borderRadius: activeExpansion.theme.borderRadius }}>
-                      {item.type}
+                      {item.type} {item.type === 'property' ? `(${propertyCount}/3)` : item.type === 'business' ? `(${businessCount}/2)` : ''}
                     </span>
                   </div>
                   <p className="text-xs text-text-sub mt-1.5 font-light leading-relaxed">{item.description}</p>
@@ -156,16 +163,16 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ onBack }) => {
                   </span>
                   
                   <button
-                    disabled={!affordable}
+                    disabled={!canAcquire}
                     onClick={() => buyItem(item)}
                     className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider cursor-pointer interactive-btn ${
-                      affordable 
+                      canAcquire 
                         ? 'bg-primary hover:bg-primary-hover text-white shadow-sm' 
-                        : 'bg-card-bg border border-card-border text-text-sub cursor-not-allowed'
+                        : 'bg-card-bg border border-card-border text-text-sub cursor-not-allowed opacity-50'
                     }`}
                     style={{ borderRadius: activeExpansion.theme.borderRadius }}
                   >
-                    Acquire
+                    {limitReached ? 'Limit Reached' : 'Acquire'}
                   </button>
                 </div>
               </div>
