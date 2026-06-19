@@ -67,16 +67,20 @@ export const ActivitiesScreen: React.FC<ActivitiesScreenProps> = ({ onBack }) =>
 
               <div className="grid grid-cols-1 gap-3">
                 {acts.map(act => {
+                  const performedThisYear = character.yearlyActions?.activitiesPerformed?.includes(act.id) || false;
                   const affordable = character.gold >= act.cost;
+                  const canDo = affordable && !performedThisYear;
                   return (
                     <button
                       key={act.id}
-                      disabled={!affordable}
+                      disabled={!canDo}
                       onClick={() => performActivity(act.id)}
                       className={`text-left border rounded-xl p-4 flex justify-between items-center transition-all duration-200 interactive-btn cursor-pointer ${
-                        affordable 
-                          ? 'bg-card-bg border-card-border hover:border-primary/50' 
-                          : 'bg-black/5 border-card-border opacity-50 cursor-not-allowed'
+                        performedThisYear
+                          ? 'bg-black/5 border-card-border opacity-50 cursor-not-allowed'
+                          : affordable 
+                            ? 'bg-card-bg border-card-border hover:border-primary/50' 
+                            : 'bg-black/5 border-card-border opacity-50 cursor-not-allowed'
                       }`}
                       style={{ borderRadius: activeExpansion.theme.borderRadius }}
                     >
@@ -86,7 +90,11 @@ export const ActivitiesScreen: React.FC<ActivitiesScreenProps> = ({ onBack }) =>
                       </div>
                       
                       <div className="text-right flex-shrink-0 font-sans">
-                        {act.cost > 0 ? (
+                        {performedThisYear ? (
+                          <span className="text-xs font-bold text-slate-500 bg-slate-500/10 border border-slate-500/20 px-2.5 py-1 rounded" style={{ borderRadius: activeExpansion.theme.borderRadius }}>
+                            DONE
+                          </span>
+                        ) : act.cost > 0 ? (
                           <span className={`text-xs font-bold px-2.5 py-1 rounded border ${
                             affordable 
                               ? 'text-primary bg-primary/10 border-primary/20' 

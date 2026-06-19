@@ -131,6 +131,10 @@ export interface Character {
   journal: string[];
   isDead: boolean;
   deathReason?: string;
+  yearlyActions?: {
+    interactedRelations: string[];
+    activitiesPerformed: string[];
+  };
 }
 
 export interface DynastyHistoryEntry {

@@ -205,7 +205,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       relationships: initialRelationships,
       inventory: [],
       journal: [journalText],
-      isDead: false
+      isDead: false,
+      yearlyActions: {
+        interactedRelations: [],
+        activitiesPerformed: []
+      }
     };
 
     setCharacter(newChar);
@@ -354,6 +358,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const performActivity = (activityId: string) => {
     if (!character || character.isDead) return;
+    const performedActivities = character.yearlyActions?.activitiesPerformed || [];
+    if (performedActivities.includes(activityId)) {
+      gameAudio.playFail();
+      return;
+    }
+
     const activity = activeExpansion.activities.find(a => a.id === activityId);
     if (!activity) return;
 
@@ -398,73 +408,60 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } 
       else if (activity.id === 'pickpocket' || activity.id === 'smuggle_rum') {
-        const successChance = 0.45 + (prev.stats.intelligence + prev.stats.charisma) / 300; // Cap around 80%
-        const roll = Math.random();
-        
-        if (roll < successChance) {
+        const success = Math.random() > 0.45; // 55% success chance
+        if (success) {
           const loot = activity.id === 'pickpocket' 
-            ? Math.floor(Math.random() * 20) + 5 
-            : Math.floor(Math.random() * 80) + 40;
+            ? Math.floor(Math.random() * 25) + 10
+            : Math.floor(Math.random() * 60) + 30;
           currentGold += loot;
-          newStats.reputation = Math.max(0, newStats.reputation - 12); // gain infamy
           newStats.happiness = Math.min(100, newStats.happiness + 10);
-          logs.push(`Successful crime! Stole ${loot} Gold from patrols and merchants.`);
+          newStats.reputation = Math.max(0, newStats.reputation - 6);
+          logs.push(`Successfully completed theft. Obtained ${loot} Gold!`);
           gameAudio.playMoney();
         } else {
-          // Arrested!
-          newStats.reputation = Math.max(0, newStats.reputation - 25);
-          newStats.happiness = Math.max(0, newStats.happiness - 35);
-          newStats.health = Math.max(0, newStats.health - 15);
-          currentGold = Math.max(0, currentGold - 50); // Fine
-          
-          logs.push(`Caught by authorities committing crimes! Fined 50 Gold and spent months in dungeon.`);
+          newStats.reputation = Math.max(0, newStats.reputation - 15);
+          newStats.happiness = Math.max(0, newStats.happiness - 10);
+          const caughtFine = activity.id === 'pickpocket' ? 50 : 100;
+          currentGold = Math.max(0, currentGold - caughtFine);
+          logs.push(`Caught in the act! You were heavily fined ${caughtFine} Gold by local guards.`);
           gameAudio.playFail();
-          
-          // Fire from job
-          return {
-            ...prev,
-            gold: currentGold,
-            stats: newStats,
-            career: undefined,
-            journal: logs
-          };
         }
       } 
       else if (activity.id === 'goblin_raid' || activity.id === 'raid_merchant') {
-        const successChance = 0.35 + (prev.stats.strength + prev.stats.intelligence) / 300;
-        const roll = Math.random();
-        
-        if (roll < successChance) {
+        const success = Math.random() > 0.50; // 50% success chance
+        if (success) {
           const loot = activity.id === 'goblin_raid'
-            ? Math.floor(Math.random() * 250) + 100
-            : Math.floor(Math.random() * 400) + 150;
+            ? Math.floor(Math.random() * 120) + 80
+            : Math.floor(Math.random() * 200) + 100;
           currentGold += loot;
-          newStats.reputation = Math.max(0, newStats.reputation - 15); // infamy
-          newStats.happiness = Math.min(100, newStats.happiness + 20);
-          logs.push(`Massive raid success! Captured valuable loot cache worth ${loot} Gold.`);
+          newStats.reputation = Math.max(0, newStats.reputation - 12);
+          newStats.happiness = Math.min(100, newStats.happiness + 15);
+          logs.push(`Successful raid! Returned with a haul of ${loot} Gold!`);
           gameAudio.playMoney();
         } else {
-          // Heavy failure
-          newStats.health = Math.max(0, newStats.health - 45); // heavy damage
-          newStats.happiness = Math.max(0, newStats.happiness - 30);
-          logs.push(`The raid went horribly wrong. You were beaten severely, barely escaping with your life.`);
-          gameAudio.playFail();
-          
-          if (newStats.health <= 0) {
+          // Fatal danger
+          const dies = Math.random() < 0.25; // 25% chance of dying if you fail
+          if (dies) {
+            newStats.health = 0;
             return {
               ...prev,
-              gold: currentGold,
-              stats: newStats,
+              stats: { ...newStats, health: 0 },
               isDead: true,
               deathReason: activity.id === 'goblin_raid' ? 'Slain by goblins during a cave raid.' : 'Blown up by ship cannons during a merchant raid.',
               journal: [...logs, `Died at age ${prev.age}: ${activity.id === 'goblin_raid' ? 'Slain by goblins' : 'Blown up during cargo raid'}.`]
             };
+          } else {
+            newStats.health = Math.max(1, newStats.health - 40);
+            newStats.happiness = Math.max(0, newStats.happiness - 20);
+            newStats.reputation = Math.max(0, newStats.reputation - 20);
+            logs.push(`The raid failed catastrophically! You barely escaped with your life, severely wounded.`);
+            gameAudio.playFail();
           }
         }
       } 
       else if (activity.id === 'seek_love' || activity.id === 'tavern_carouse') {
-        newStats.charisma = Math.min(100, newStats.charisma + 10);
         newStats.happiness = Math.min(100, newStats.happiness + 15);
+        newStats.charisma = Math.min(100, newStats.charisma + 5);
         
         // Find partner chance
         const hasSpouse = relationships.some(r => r.type === 'spouse' && r.status === 'alive');
@@ -496,13 +493,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gold: currentGold,
         stats: newStats,
         relationships,
-        journal: logs
+        journal: logs,
+        yearlyActions: {
+          interactedRelations: prev.yearlyActions?.interactedRelations || [],
+          activitiesPerformed: [...(prev.yearlyActions?.activitiesPerformed || []), activityId]
+        }
       };
     });
   };
 
   const interactWithRelation = (relationId: string, action: 'chat' | 'gift' | 'insult' | 'propose' | 'ask_gold') => {
     if (!character || character.isDead) return;
+    const interactedRelations = character.yearlyActions?.interactedRelations || [];
+    if (interactedRelations.includes(relationId)) {
+      gameAudio.playFail();
+      return;
+    }
 
     setCharacter(prev => {
       if (!prev) return null;
@@ -569,7 +575,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gold,
         stats: currentStats,
         relationships: newRelations,
-        journal: logs
+        journal: logs,
+        yearlyActions: {
+          interactedRelations: [...(prev.yearlyActions?.interactedRelations || []), relationId],
+          activitiesPerformed: prev.yearlyActions?.activitiesPerformed || []
+        }
       };
     });
   };
@@ -827,7 +837,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       career: activeJob,
       relationships: activeRelations,
       journal: [...character.journal, ...logs, `Aged up to ${currentAge} years old.`].slice(-100), // cap journal log at last 100 entries
-      isDead: false
+      isDead: false,
+      yearlyActions: {
+        interactedRelations: [],
+        activitiesPerformed: []
+      }
     };
 
     setCharacter(nextChar);
@@ -1145,7 +1159,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         `Inherited the family legacy of generation ${historyEntry.generation} after the death of ${character.name}.`,
         `Inherited ${inheritedGold} Gold and ${inheritedInventory.length} estate properties.`
       ],
-      isDead: false
+      isDead: false,
+      yearlyActions: {
+        interactedRelations: [],
+        activitiesPerformed: []
+      }
     };
 
     setCharacter(nextChar);

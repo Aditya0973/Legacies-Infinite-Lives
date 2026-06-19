@@ -144,86 +144,116 @@ export const RelationshipsScreen: React.FC<RelationshipsScreenProps> = ({ onBack
           </div>
 
           {/* Actions Buttons Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {/* Chat Action */}
-            <button
-              onClick={() => interactWithRelation(selectedRelation.id, 'chat')}
-              className="py-3 px-4 bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border border-card-border hover:border-primary/50 flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
+          {character.yearlyActions?.interactedRelations?.includes(selectedRelation.id) ? (
+            <div 
+              className="bg-black/10 border border-card-border p-4 text-center text-xs font-semibold text-text-sub flex flex-col items-center justify-center gap-1.5"
               style={{ borderRadius: activeExpansion.theme.borderRadius }}
             >
-              <MessageSquare size={16} className="text-primary" />
-              <div>
-                <p>Have a Chat</p>
-                <p className="text-[10px] text-text-sub font-light">Free • Talk about life</p>
-              </div>
-            </button>
-
-            {/* Gift Action */}
-            <button
-              disabled={character.gold < 25}
-              onClick={() => interactWithRelation(selectedRelation.id, 'gift')}
-              className={`py-3 px-4 border flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left ${
-                character.gold >= 25 
-                  ? 'bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border-card-border hover:border-primary/50' 
-                  : 'opacity-40 border-card-border text-text-sub cursor-not-allowed'
-              }`}
-              style={{ borderRadius: activeExpansion.theme.borderRadius }}
-            >
-              <Gift size={16} className="text-primary" />
-              <div>
-                <p>Present Gift</p>
-                <p className="text-[10px] text-text-sub font-light">Costs 25 G • Boost affinity</p>
-              </div>
-            </button>
-
-            {/* Insult Action */}
-            <button
-              onClick={() => interactWithRelation(selectedRelation.id, 'insult')}
-              className="py-3 px-4 bg-card-bg hover:bg-rose-500/5 text-text-main hover:text-text-heading border border-card-border hover:border-rose-500/30 flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
-              style={{ borderRadius: activeExpansion.theme.borderRadius }}
-            >
-              <HeartCrack size={16} className="text-rose-500" />
-              <div>
-                <p>Insult relative</p>
-                <p className="text-[10px] text-text-sub font-light">Free • Insult them</p>
-              </div>
-            </button>
-
-            {/* Propose marriage (Friends only) */}
-            {selectedRelation.type === 'friend' && (
+              <span>You have already interacted with {selectedRelation.name} this year.</span>
+              <span className="text-[10px] text-text-sub opacity-70">Age up to interact with them again.</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* Chat Action */}
               <button
-                onClick={() => interactWithRelation(selectedRelation.id, 'propose')}
-                className="py-3 px-4 bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border border-card-border hover:border-primary flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
+                onClick={() => {
+                  interactWithRelation(selectedRelation.id, 'chat');
+                  setSelectedRelation(null);
+                  onBack();
+                }}
+                className="py-3 px-4 bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border border-card-border hover:border-primary/50 flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
                 style={{ borderRadius: activeExpansion.theme.borderRadius }}
               >
-                <HeartHandshake size={16} className="text-primary animate-pulse" />
+                <MessageSquare size={16} className="text-primary" />
                 <div>
-                  <p>Propose Marriage</p>
-                  <p className="text-[10px] text-text-sub font-light">Reqs: 75% affinity</p>
+                  <p>Have a Chat</p>
+                  <p className="text-[10px] text-text-sub font-light">Free • Talk about life</p>
                 </div>
               </button>
-            )}
 
-            {/* Ask parent for gold */}
-            {selectedRelation.type === 'parent' && (
+              {/* Gift Action */}
               <button
-                onClick={() => interactWithRelation(selectedRelation.id, 'ask_gold')}
-                className="py-3 px-4 bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border border-card-border hover:border-primary flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
+                disabled={character.gold < 25}
+                onClick={() => {
+                  interactWithRelation(selectedRelation.id, 'gift');
+                  setSelectedRelation(null);
+                  onBack();
+                }}
+                className={`py-3 px-4 border flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left ${
+                  character.gold >= 25 
+                    ? 'bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border-card-border hover:border-primary/50' 
+                    : 'opacity-40 border-card-border text-text-sub cursor-not-allowed'
+                }`}
                 style={{ borderRadius: activeExpansion.theme.borderRadius }}
               >
-                <DollarSign size={16} className="text-primary" />
+                <Gift size={16} className="text-primary" />
                 <div>
-                  <p>Ask for Gold</p>
-                  <p className="text-[10px] text-text-sub font-light">Yields gold if liked</p>
+                  <p>Present Gift</p>
+                  <p className="text-[10px] text-text-sub font-light">Costs 25 G • Boost affinity</p>
                 </div>
               </button>
-            )}
-          </div>
 
+              {/* Insult Action */}
+              <button
+                onClick={() => {
+                  interactWithRelation(selectedRelation.id, 'insult');
+                  setSelectedRelation(null);
+                  onBack();
+                }}
+                className="py-3 px-4 bg-card-bg hover:bg-rose-500/5 text-text-main hover:text-text-heading border border-card-border hover:border-rose-500/30 flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
+                style={{ borderRadius: activeExpansion.theme.borderRadius }}
+              >
+                <HeartCrack size={16} className="text-rose-500" />
+                <div>
+                  <p>Insult relative</p>
+                  <p className="text-[10px] text-text-sub font-light">Free • Insult them</p>
+                </div>
+              </button>
+
+              {/* Propose marriage (Friends only) */}
+              {selectedRelation.type === 'friend' && (
+                <button
+                  onClick={() => {
+                    interactWithRelation(selectedRelation.id, 'propose');
+                    setSelectedRelation(null);
+                    onBack();
+                  }}
+                  className="py-3 px-4 bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border border-card-border hover:border-primary flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
+                  style={{ borderRadius: activeExpansion.theme.borderRadius }}
+                >
+                  <HeartHandshake size={16} className="text-primary animate-pulse" />
+                  <div>
+                    <p>Propose Marriage</p>
+                    <p className="text-[10px] text-text-sub font-light">Reqs: 75% affinity</p>
+                  </div>
+                </button>
+              )}
+
+              {/* Ask parent for gold */}
+              {selectedRelation.type === 'parent' && (
+                <button
+                  onClick={() => {
+                    interactWithRelation(selectedRelation.id, 'ask_gold');
+                    setSelectedRelation(null);
+                    onBack();
+                  }}
+                  className="py-3 px-4 bg-card-bg hover:bg-primary/5 text-text-main hover:text-text-heading border border-card-border hover:border-primary flex items-center gap-3 text-sm font-semibold transition-all cursor-pointer interactive-btn text-left"
+                  style={{ borderRadius: activeExpansion.theme.borderRadius }}
+                >
+                  <DollarSign size={16} className="text-primary" />
+                  <div>
+                    <p>Ask for Gold</p>
+                    <p className="text-[10px] text-text-sub font-light">Yields gold if liked</p>
+                  </div>
+                </button>
+              )}
+            </div>
+          )}
+          
           {/* Back button */}
           <button
             onClick={() => setSelectedRelation(null)}
-            className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-bold transition-all cursor-pointer interactive-btn uppercase tracking-wider"
+            className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-bold transition-all cursor-pointer interactive-btn uppercase tracking-wider mt-2"
             style={{ borderRadius: activeExpansion.theme.borderRadius }}
           >
             Go Back
