@@ -9,6 +9,32 @@ class SoundSystem {
   private filterNode: BiquadFilterNode | null = null;
   private audioEl: HTMLAudioElement | null = null;
 
+  constructor() {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (this.audioEl) {
+            try {
+              this.audioEl.pause();
+            } catch (e) {}
+          }
+          if (this.ctx && this.ctx.state === 'running') {
+            this.ctx.suspend().catch(() => {});
+          }
+        } else {
+          if (this.enabled) {
+            if (this.audioEl && this.currentTheme === 'fantasy') {
+              this.audioEl.play().catch(e => console.warn("Blocked visibility resume:", e));
+            }
+            if (this.ctx && this.ctx.state === 'suspended') {
+              this.ctx.resume().catch(() => {});
+            }
+          }
+        }
+      });
+    }
+  }
+
   private init() {
     if (!this.ctx) {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { 
   Character, 
   Relationship, 
@@ -83,6 +83,59 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [saveSlots, setSaveSlots] = useState<Record<string, SlotMeta>>({});
   const [activeSlotId, setActiveSlotId] = useState<string>('slot_1');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+
+  const preGeneratedEventRef = useRef<GameEvent | null>(null);
+  const isPreGeneratingRef = useRef<boolean>(false);
+
+  const preGenerateNextEvent = async (char: Character, exp: Expansion) => {
+    if (isPreGeneratingRef.current) return;
+    
+    const nextAge = char.age + 1;
+    if (nextAge < 5) return;
+    
+    isPreGeneratingRef.current = true;
+    try {
+      const honor = char.stats.reputation;
+      const infamy = 100 - char.stats.reputation;
+      
+      const relationshipsSummary = char.relationships
+        .map(r => `${r.type} ${r.name} (${r.status}, age ${r.age + 1}, relationship ${r.relationship})`)
+        .join(', ');
+
+      const compactState = {
+        age: nextAge,
+        career: char.career?.title || 'None',
+        familyBackground: exp.startingBackgrounds.find(b => b.id === char.familyBackgroundId)?.name || char.familyBackgroundId,
+        traits: char.traits,
+        honor,
+        infamy,
+        gold: char.gold,
+        relationshipsSummary,
+        expansion: exp.name
+      };
+
+      const response = await fetch('/api/generate-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(compactState)
+      });
+
+      if (response.ok) {
+        const rawEvent = await response.json();
+        preGeneratedEventRef.current = rawEvent;
+      } else {
+        console.warn("Failed to pre-generate event, status:", response.status);
+        preGeneratedEventRef.current = null;
+      }
+    } catch (err) {
+      console.error("Error pre-generating event:", err);
+      preGeneratedEventRef.current = null;
+    } finally {
+      isPreGeneratingRef.current = false;
+    }
+  };
 
   // Load active slots and config on mount
   useEffect(() => {
@@ -245,6 +298,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     saveSystem.saveGame(activeSlotId, currentSave);
     setSaveSlots(saveSystem.getSlots());
+
+    preGenerateNextEvent(newChar, activeExpansion);
   };
 
   const applyForJob = (career: Career): boolean => {
@@ -1063,41 +1118,46 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 85% chance of an event triggering at age 5+
     let triggeredEvent: GameEvent | null = null;
     if (currentAge >= 5 && Math.random() < 0.85) {
-      // 8a. Attempt to generate event using the backend AI service
-      try {
-        const honor = newStats.reputation;
-        const infamy = 100 - newStats.reputation;
-        const relationshipsSummary = activeRelations
-          .map(r => `${r.type} ${r.name} (${r.status}, age ${r.age}, relationship ${r.relationship})`)
-          .join(', ');
+      if (preGeneratedEventRef.current) {
+        triggeredEvent = preGeneratedEventRef.current;
+        preGeneratedEventRef.current = null; // consume it
+      } else {
+        // 8a. Attempt to generate event using the backend AI service
+        try {
+          const honor = newStats.reputation;
+          const infamy = 100 - newStats.reputation;
+          const relationshipsSummary = activeRelations
+            .map(r => `${r.type} ${r.name} (${r.status}, age ${r.age}, relationship ${r.relationship})`)
+            .join(', ');
 
-        const compactState = {
-          age: currentAge,
-          career: activeJob?.title || 'None',
-          familyBackground: activeExpansion.startingBackgrounds.find(b => b.id === character.familyBackgroundId)?.name || character.familyBackgroundId,
-          traits: character.traits,
-          honor,
-          infamy,
-          gold: newGold,
-          relationshipsSummary,
-          expansion: activeExpansion.name
-        };
+          const compactState = {
+            age: currentAge,
+            career: activeJob?.title || 'None',
+            familyBackground: activeExpansion.startingBackgrounds.find(b => b.id === character.familyBackgroundId)?.name || character.familyBackgroundId,
+            traits: character.traits,
+            honor,
+            infamy,
+            gold: newGold,
+            relationshipsSummary,
+            expansion: activeExpansion.name
+          };
 
-        const response = await fetch('/api/generate-event', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(compactState)
-        });
+          const response = await fetch('/api/generate-event', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(compactState)
+          });
 
-        if (response.ok) {
-          triggeredEvent = await response.json();
-        } else {
-          console.warn("Backend failed to generate event, status code:", response.status);
+          if (response.ok) {
+            triggeredEvent = await response.json();
+          } else {
+            console.warn("Backend failed to generate event, status code:", response.status);
+          }
+        } catch (err) {
+          console.error("Failed to fetch generated event from backend, falling back to static:", err);
         }
-      } catch (err) {
-        console.error("Failed to fetch generated event from backend, falling back to static:", err);
       }
 
       // 8b. If AI generation was unavailable or failed, fall back to static local events
@@ -1174,7 +1234,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setWorldEvent(activeWorldEvent);
     
     if (triggeredEvent) {
-      setCurrentEvent(triggeredEvent);
+      const shuffledChoices = [...triggeredEvent.choices].sort(() => Math.random() - 0.5);
+      setCurrentEvent({
+        ...triggeredEvent,
+        choices: shuffledChoices
+      });
     } else {
       gameAudio.playClick();
     }
@@ -1187,6 +1251,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       lineage
     });
     setSaveSlots(saveSystem.getSlots());
+
+    // Pre-generate event for the next year in the background
+    preGenerateNextEvent(nextChar, activeExpansion);
   };
 
   const chooseChoice = (choice: Choice) => {
@@ -1392,6 +1459,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lineage
       });
       setSaveSlots(saveSystem.getSlots());
+
+      preGenerateNextEvent(character, activeExpansion);
     }
   };
 
@@ -1532,7 +1601,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = saveSystem.loadGame(slotId);
     if (data) {
       setCharacter(data.character);
-      setActiveExpansion(getExpansion(data.activeExpansionId));
+      const exp = getExpansion(data.activeExpansionId);
+      setActiveExpansion(exp);
       setWorldEvent(data.worldEvent);
       setLineage(data.lineage);
       setActiveSlotId(slotId);
@@ -1541,6 +1611,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentEvent(null);
       setCurrentEventOutcome(null);
       gameAudio.playLevelUp();
+      
+      preGenerateNextEvent(data.character, exp);
     } else {
       gameAudio.playFail();
     }

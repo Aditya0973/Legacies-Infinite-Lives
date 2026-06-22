@@ -45,6 +45,12 @@ Engage in a variety of seasonal recreation, adventuring, and underworld activiti
 *   **Medieval Lofi Background Music:** Plays high-quality looped MP3 tracks for the Fantasy Expansion (using local assets), falling back to lightweight Web Audio API synthesis for secondary expansions.
 *   **Desktop Responsive Frame:** Centers the layout vertically and horizontally on PC monitors as a floating device card with borders, shadows, and rounded edges, preventing stretched lines and keeping critical buttons (like profile) on-screen.
 
+### 6. AI-First Dynamic Event System
+- **Real-Time Story Generation**: Calls `/api/generate-event` (a Vercel Serverless Function) on age-up to generate context-specific narratives based on the character's exact stats, traits, age, and relationships.
+- **Morally Ambiguous Choices**: Leverages the primary model `qwen/qwen3-32b` (with a high-availability fallback to `llama-3.3-70b-versatile`) to generate subtle, vague options. This forces roleplay over numerical optimization.
+- **Narrative Outcomes**: The engine calculates the numerical impacts (gold, stats, death, traits) while the AI writes the tailored narrative resolutions.
+- **Offline Fallback**: If the API is rate-limited or offline, the engine automatically selects an appropriate static hardcoded event so play remains completely uninterrupted.
+
 ---
 
 ## Technology Stack
