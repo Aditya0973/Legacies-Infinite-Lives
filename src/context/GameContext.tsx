@@ -858,7 +858,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const ageOneYear = () => {
+  const ageOneYear = async () => {
     if (!character || character.isDead) return;
 
     const currentAge = character.age + 1;
@@ -1062,53 +1062,93 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 8. Event selection engine (Random events)
     // 85% chance of an event triggering at age 5+
     let triggeredEvent: GameEvent | null = null;
-    if (currentAge >= 5 && Math.random() < 0.85 && activeExpansion.events.length > 0) {
-      // Filter valid events
-      const validEvents = activeExpansion.events.filter(e => {
-        if (e.requirements) {
-          const r = e.requirements;
-          if (r.minAge && currentAge < r.minAge) return false;
-          if (r.maxAge && currentAge > r.maxAge) return false;
-          if (r.careerId && activeJob?.id !== r.careerId) return false;
-          if (r.activeWorldEventId && activeWorldEvent?.id !== r.activeWorldEventId) return false;
-          
-           if (r.hasSpouse) {
-            const hasSpouse = activeRelations.some(rel => rel.type === 'spouse' && rel.status === 'alive');
-            if (!hasSpouse) return false;
-          }
-          if (r.hasChildren) {
-            const hasChildren = activeRelations.some(rel => rel.type === 'child' && rel.status === 'alive');
-            if (!hasChildren) return false;
-          }
-          if (r.hasSibling) {
-            const hasSibling = activeRelations.some(rel => rel.type === 'sibling' && rel.status === 'alive');
-            if (!hasSibling) return false;
-          }
-          if (r.familyBackgroundId && character.familyBackgroundId !== r.familyBackgroundId) return false;
-          if (r.requiredTraits && !r.requiredTraits.every(t => character.traits.includes(t))) return false;
-          if (r.forbiddenTraits && r.forbiddenTraits.some(t => character.traits.includes(t))) return false;
-          if (r.minStats) {
-            for (const [stat, val] of Object.entries(r.minStats)) {
-              if (newStats[stat as StatName] < (val || 0)) return false;
-            }
-          }
-        }
-        return true;
-      });
+    if (currentAge >= 5 && Math.random() < 0.85) {
+      // 8a. Attempt to generate event using the backend AI service
+      try {
+        const honor = newStats.reputation;
+        const infamy = 100 - newStats.reputation;
+        const relationshipsSummary = activeRelations
+          .map(r => `${r.type} ${r.name} (${r.status}, age ${r.age}, relationship ${r.relationship})`)
+          .join(', ');
 
-      if (validEvents.length > 0) {
-        // Weighted roll
-        let totalWeight = 0;
-        validEvents.forEach(e => {
-          totalWeight += e.weight;
+        const compactState = {
+          age: currentAge,
+          career: activeJob?.title || 'None',
+          familyBackground: activeExpansion.startingBackgrounds.find(b => b.id === character.familyBackgroundId)?.name || character.familyBackgroundId,
+          traits: character.traits,
+          honor,
+          infamy,
+          gold: newGold,
+          relationshipsSummary,
+          expansion: activeExpansion.name
+        };
+
+        const response = await fetch('/api/generate-event', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(compactState)
         });
 
-        let roll = Math.random() * totalWeight;
-        for (const ev of validEvents) {
-          roll -= ev.weight;
-          if (roll <= 0) {
-            triggeredEvent = ev;
-            break;
+        if (response.ok) {
+          triggeredEvent = await response.json();
+        } else {
+          console.warn("Backend failed to generate event, status code:", response.status);
+        }
+      } catch (err) {
+        console.error("Failed to fetch generated event from backend, falling back to static:", err);
+      }
+
+      // 8b. If AI generation was unavailable or failed, fall back to static local events
+      if (!triggeredEvent && activeExpansion.events.length > 0) {
+        // Filter valid events
+        const validEvents = activeExpansion.events.filter(e => {
+          if (e.requirements) {
+            const r = e.requirements;
+            if (r.minAge && currentAge < r.minAge) return false;
+            if (r.maxAge && currentAge > r.maxAge) return false;
+            if (r.careerId && activeJob?.id !== r.careerId) return false;
+            if (r.activeWorldEventId && activeWorldEvent?.id !== r.activeWorldEventId) return false;
+            
+             if (r.hasSpouse) {
+              const hasSpouse = activeRelations.some(rel => rel.type === 'spouse' && rel.status === 'alive');
+              if (!hasSpouse) return false;
+            }
+            if (r.hasChildren) {
+              const hasChildren = activeRelations.some(rel => rel.type === 'child' && rel.status === 'alive');
+              if (!hasChildren) return false;
+            }
+            if (r.hasSibling) {
+              const hasSibling = activeRelations.some(rel => rel.type === 'sibling' && rel.status === 'alive');
+              if (!hasSibling) return false;
+            }
+            if (r.familyBackgroundId && character.familyBackgroundId !== r.familyBackgroundId) return false;
+            if (r.requiredTraits && !r.requiredTraits.every(t => character.traits.includes(t))) return false;
+            if (r.forbiddenTraits && r.forbiddenTraits.some(t => character.traits.includes(t))) return false;
+            if (r.minStats) {
+              for (const [stat, val] of Object.entries(r.minStats)) {
+                if (newStats[stat as StatName] < (val || 0)) return false;
+              }
+            }
+          }
+          return true;
+        });
+
+        if (validEvents.length > 0) {
+          // Weighted roll
+          let totalWeight = 0;
+          validEvents.forEach(e => {
+            totalWeight += e.weight;
+          });
+
+          let roll = Math.random() * totalWeight;
+          for (const ev of validEvents) {
+            roll -= ev.weight;
+            if (roll <= 0) {
+              triggeredEvent = ev;
+              break;
+            }
           }
         }
       }
