@@ -3,6 +3,7 @@ import { GameProvider, useGame } from './context/GameContext';
 import { MainMenu } from './components/MainMenu';
 import { NewLife } from './components/NewLife';
 import { CharacterScreen } from './components/CharacterScreen';
+import { AIDebugMonitor } from './components/AIDebugMonitor';
 
 const AppContent: React.FC = () => {
   const { activeExpansion, isPlaying } = useGame();
@@ -67,6 +68,7 @@ const AppContent: React.FC = () => {
           © 2026 Legacies Simulators Inc. All rights reserved.
         </footer>
       )}
+      <AIDebugMonitor />
     </div>
   );
 };

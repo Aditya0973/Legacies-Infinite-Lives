@@ -16,6 +16,17 @@ export const RelationshipsScreen: React.FC<RelationshipsScreenProps> = ({ onBack
   const aliveRelations = character.relationships.filter(r => r.status === 'alive');
   const deadRelations = character.relationships.filter(r => r.status === 'dead');
 
+  const getRelationLabel = (rel: Relationship): string => {
+    if (rel.id === 'mother') return 'Mother';
+    if (rel.id === 'father') return 'Father';
+    if (rel.type === 'sibling') {
+      if (rel.id.startsWith('brother')) return 'Brother';
+      if (rel.id.startsWith('sister')) return 'Sister';
+      return 'Sibling';
+    }
+    return rel.type;
+  };
+
   const getRelationColor = (val: number): string => {
     if (val >= 75) return 'bg-emerald-600';
     if (val >= 45) return 'bg-sky-600';
@@ -60,7 +71,7 @@ export const RelationshipsScreen: React.FC<RelationshipsScreenProps> = ({ onBack
                   >
                     <div>
                       <p className="font-bold text-base text-text-heading">{rel.name}</p>
-                      <p className="text-xs text-text-sub capitalize font-medium">{rel.type} • Age {rel.age}</p>
+                      <p className="text-xs text-text-sub capitalize font-medium">{getRelationLabel(rel)} • Age {rel.age}</p>
                     </div>
                     
                     {/* Affection bar */}
@@ -94,7 +105,7 @@ export const RelationshipsScreen: React.FC<RelationshipsScreenProps> = ({ onBack
                   >
                     <div>
                       <p className="font-bold text-text-sub line-through">{rel.name}</p>
-                      <p className="text-text-sub opacity-80 capitalize">{rel.type} • Deceased at {rel.age}</p>
+                      <p className="text-xs text-text-sub opacity-80 capitalize">{getRelationLabel(rel)} • Deceased at {rel.age}</p>
                     </div>
                     <span className="text-[9px] uppercase font-bold tracking-wider text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
                       R.I.P.
@@ -116,7 +127,7 @@ export const RelationshipsScreen: React.FC<RelationshipsScreenProps> = ({ onBack
           <div className="flex justify-between items-start border-b border-card-border pb-4">
             <div>
               <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-0.5 border border-primary/20 block w-max mb-2">
-                {selectedRelation.type}
+                {getRelationLabel(selectedRelation)}
               </span>
               <h4 className="text-xl font-bold text-text-heading">{selectedRelation.name}</h4>
               <p className="text-xs text-text-sub mt-1">Age: {selectedRelation.age} years old</p>

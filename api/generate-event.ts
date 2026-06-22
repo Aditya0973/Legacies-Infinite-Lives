@@ -179,7 +179,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const choice2GoldFail = riskLevel === 'high' ? -Math.floor(Math.random() * 80) - 30 : -Math.floor(Math.random() * 30);
 
     // 2. Query Groq API with Retry Logic (Try Qwen 32B first, fall back to Llama 70B)
-    let aiResponse = null;
+    let debugInfo: any = null;
+    let aiResponse: any = null;
     let attempts = 0;
     const maxAttempts = 2;
 
@@ -217,7 +218,8 @@ Constraint limits:
 - Each choice description MUST be max 30 characters.
 - Each outcome story resolution MUST be max 100 characters.
 
-The choices MUST be intentionally vague, subtle, and morally ambiguous. Avoid direct, obvious choices.
+The choices MUST describe clear, concrete physical actions or verbal responses that logically fit the scenario (e.g. for an illness: "Consult an apothecary", "Rest in isolation", "Purchase strange herbs"). Do NOT output abstract concepts or nonsensical/out-of-context options (do not say "exploit demand" for an illness).
+The choices should be subtle and vague about whether they lead to a good or bad outcome.
 The choices MUST align with these mechanical archetypes:
 1. Choice 0: A cautious, safe, or neutral action.
 2. Choice 1: An honorable, principled, or active action.
@@ -297,6 +299,22 @@ Return ONLY raw JSON. No markdown code blocks, no extra explanations, and no sur
                   ]
                 };
               }
+
+              if (aiResponse) {
+                console.log("=== GROQ SYSTEM & USER PROMPT ===");
+                console.log(prompt);
+                console.log("=== GROQ RESPONSE ===");
+                console.log(contentText);
+                console.log("=== TOKENS USED ===");
+                console.log(JSON.stringify(data.usage));
+
+                debugInfo = {
+                  model: modelToUse,
+                  prompt: prompt,
+                  response: contentText,
+                  usage: data.usage
+                };
+              }
             }
           }
         } catch (err) {
@@ -308,6 +326,12 @@ Return ONLY raw JSON. No markdown code blocks, no extra explanations, and no sur
     // 3. Fallback narrative if AI failed
     if (!aiResponse) {
       aiResponse = getFallbackEvent(expansion, category);
+      debugInfo = {
+        model: "Local static fallback (AI failed / offline)",
+        prompt: "N/A",
+        response: JSON.stringify(aiResponse),
+        usage: { total_tokens: 0, prompt_tokens: 0, completion_tokens: 0 }
+      };
     }
 
     // 4. Assemble final GameEvent with pre-calculated mechanics mapped to the AI's story outcomes
@@ -392,7 +416,12 @@ Return ONLY raw JSON. No markdown code blocks, no extra explanations, and no sur
       ]
     };
 
-    return res.status(200).json(finalEvent);
+    const responseData = {
+      ...finalEvent,
+      _debug: debugInfo
+    };
+
+    return res.status(200).json(responseData);
   } catch (error: any) {
     console.error('Error generating event:', error);
     return res.status(500).json({ error: 'Internal Server Error' });

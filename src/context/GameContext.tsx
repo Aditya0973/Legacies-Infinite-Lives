@@ -25,6 +25,7 @@ interface GameContextType {
   worldEvent: WorldEvent | null;
   currentEvent: GameEvent | null;
   currentEventOutcome: EventOutcome | null;
+  lastEventDebug: any;
   isPlaying: boolean;
   saveSlots: Record<string, SlotMeta>;
   activeSlotId: string;
@@ -79,6 +80,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [worldEvent, setWorldEvent] = useState<WorldEvent | null>(null);
   const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null);
   const [currentEventOutcome, setCurrentEventOutcome] = useState<EventOutcome | null>(null);
+  const [lastEventDebug, setLastEventDebug] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [saveSlots, setSaveSlots] = useState<Record<string, SlotMeta>>({});
   const [activeSlotId, setActiveSlotId] = useState<string>('slot_1');
@@ -234,10 +236,56 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const name = customName.trim() || generated.first;
     const dynastyName = customDynastyName.trim() || generated.last;
     
-    // Generate initial parents
+    // Generate initial parents and siblings
     const parentLast = dynastyName;
     const motherFirst = activeExpansion.names.female[Math.floor(Math.random() * activeExpansion.names.female.length)];
     const fatherFirst = activeExpansion.names.male[Math.floor(Math.random() * activeExpansion.names.male.length)];
+
+    // Sibling generation
+    const siblingCountRoll = Math.random();
+    let siblingCount = 0;
+    if (siblingCountRoll < 0.40) {
+      siblingCount = 0;
+    } else if (siblingCountRoll < 0.75) {
+      siblingCount = 1;
+    } else if (siblingCountRoll < 0.93) {
+      siblingCount = 2;
+    } else {
+      siblingCount = 3;
+    }
+
+    let oldestSiblingAge = 0;
+    const generatedSiblings: Relationship[] = [];
+
+    for (let i = 0; i < siblingCount; i++) {
+      const isMale = Math.random() > 0.5;
+      const sibFirst = isMale
+        ? activeExpansion.names.male[Math.floor(Math.random() * activeExpansion.names.male.length)]
+        : activeExpansion.names.female[Math.floor(Math.random() * activeExpansion.names.female.length)];
+      
+      const sibAge = Math.floor(Math.random() * 12) + 1; // ages 1 to 12
+      if (sibAge > oldestSiblingAge) {
+        oldestSiblingAge = sibAge;
+      }
+
+      generatedSiblings.push({
+        id: `${isMale ? 'brother' : 'sister'}_${Date.now()}_${i}`,
+        name: `${sibFirst} ${parentLast}`,
+        type: 'sibling',
+        relationship: Math.floor(Math.random() * 30) + 55, // 55 to 85
+        status: 'alive',
+        age: sibAge
+      });
+    }
+
+    const motherAge = Math.max(
+      Math.floor(Math.random() * 15) + 20, // 20 to 35 base
+      oldestSiblingAge + Math.floor(Math.random() * 10) + 16 // ensures mother was at least 16 when oldest sibling was born
+    );
+    const fatherAge = Math.max(
+      Math.floor(Math.random() * 15) + 22, // 22 to 37 base
+      oldestSiblingAge + Math.floor(Math.random() * 10) + 17
+    );
 
     const initialRelationships: Relationship[] = [
       {
@@ -246,7 +294,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: 'parent',
         relationship: Math.floor(Math.random() * 30) + 60, // 60 to 90
         status: 'alive',
-        age: Math.floor(Math.random() * 15) + 20 // 20 to 35
+        age: motherAge
       },
       {
         id: 'father',
@@ -254,11 +302,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: 'parent',
         relationship: Math.floor(Math.random() * 30) + 60,
         status: 'alive',
-        age: Math.floor(Math.random() * 15) + 22 // 22 to 37
-      }
+        age: fatherAge
+      },
+      ...generatedSiblings
     ];
 
-    const journalText = `Born a ${gender} child. ${selectedBg.journalText} Parents: Mother ${initialRelationships[0].name}, Father ${initialRelationships[1].name}.`;
+    const journalText = `Born a ${gender} child. ${selectedBg.journalText} Parents: Mother ${initialRelationships[0].name}, Father ${initialRelationships[1].name}.${siblingCount > 0 ? ` You have ${siblingCount} sibling${siblingCount > 1 ? 's' : ''}.` : ''}`;
 
     const newChar: Character = {
       name,
@@ -1239,6 +1288,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...triggeredEvent,
         choices: shuffledChoices
       });
+      if ((triggeredEvent as any)._debug) {
+        setLastEventDebug((triggeredEvent as any)._debug);
+      } else {
+        setLastEventDebug({
+          model: "Static Local Event (requirements triggered)",
+          prompt: "N/A",
+          response: "N/A",
+          usage: { total_tokens: 0, prompt_tokens: 0, completion_tokens: 0 }
+        });
+      }
     } else {
       gameAudio.playClick();
     }
@@ -1519,6 +1578,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     ];
 
+    // Carry over previous character's other children as siblings for the heir
+    const previousSiblings = character.relationships.filter(
+      r => r.type === 'child' && r.id !== childId
+    );
+    previousSiblings.forEach((sib, index) => {
+      const isMale = Math.random() > 0.5;
+      newRelationships.push({
+        id: `${isMale ? 'brother' : 'sister'}_${Date.now()}_${index}`,
+        name: sib.name,
+        type: 'sibling',
+        relationship: Math.floor(Math.random() * 30) + 60,
+        status: sib.status,
+        age: sib.age
+      });
+    });
+
     // Determine dynamic background for heir based on parent's final title/achievements
     let nextBgId = 'farmer';
     if (character.title.includes('Prince') || character.title.includes('Princess') || character.title.includes('King') || character.title.includes('Queen') || character.title.includes('Royal')) {
@@ -1642,6 +1717,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       worldEvent,
       currentEvent,
       currentEventOutcome,
+      lastEventDebug,
       isPlaying,
       saveSlots,
       activeSlotId,
